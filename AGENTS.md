@@ -1,19 +1,42 @@
-# Agent Entry
+﻿# Cocolla — Agent Entry
 
-**Cocolla** — Cocolla is a multi-user embroidery and cross-stitch design application for creating, importing, editing, visualizing, and managing stitching projects. Features include an interactive stitch canvas, image-to-pattern conversion, thread color management, front-and-back fabric visualization, pattern exporting, and stitch progress tracking. The modular architecture supports self-hosted deployment and future AI-assisted design features.
+Cocolla is a multi-user embroidery and cross-stitch design application supporting pattern creation, editing, image-to-pattern conversion, thread management, fabric visualization, exports, and stitch progress tracking.
 
-This file is the entry point for coding agents (Codex, Claude Code, and others). It is a router, not a container: project facts, rules, and plans live in the documents it points to.
+This file is the entry point for coding agents operating on Cocolla. It routes agents to authoritative project documentation rather than duplicating decisions.
 
 ## Read first
 
-- [docs/icm/context.md](docs/icm/context.md) — what the project is and how it is shaped
-- [docs/icm/invariants.md](docs/icm/invariants.md) — rules that must hold
-- [docs/icm/current-state.md](docs/icm/current-state.md) — where things stand now
-- [docs/icm/roadmap.md](docs/icm/roadmap.md) — what comes next
+- [ICM index](docs/icm/README.md)
+- [Project context](docs/icm/context.md)
+- [Project invariants](docs/icm/invariants.md)
+- [Current state](docs/icm/current-state.md)
+- [Roadmap](docs/icm/roadmap.md)
+- [Repository-reference register](repoinspire.md)
 
-## Keep context true
+## Development rules
 
-- When a change alters what a routed document says, update that document in the same change.
-- Add project-specific architecture, domains, and decisions as their own documents and link them here; do not copy them into this file.
+- Read the relevant ICM documents before modifying the application.
+- Preserve existing project decisions and architecture.
+- Update ICM documentation when implementation changes its recorded state.
+- Do not infer implemented functionality from planned features.
+- Do not introduce major dependencies or architectural changes without an explicit decision.
+- Keep project facts, architectural decisions, and implementation evidence in their appropriate documents.
 
-Created by nexOS Project Creator on 2026-10-18. Maintain it like any other project file.
+## Repository-reference governance
+
+Before recommending or evaluating external tools, libraries, frameworks, skills, or repositories, consult repoinspire.md.
+
+- The project register is authoritative for Cocolla reference decisions.
+- The private master catalog at https://github.com/jlopesmo/repoinspire maintains shared research and source-stamped project decisions.
+- Keep candidate_reference and accepted_reference separate from actual adoption status.
+- Distinguish proposed uses and priorities from user-approved decisions.
+- Claim actively_using only when supported by concrete implementation evidence.
+- Preserve rejection history, licensing considerations, and existing decisions.
+- Update the register when references are evaluated, adopted, rejected, or retired.
+- Listing a reference does not authorize installation, execution, credential access, data sharing, or deployment.
+
+## Maintenance
+
+Keep this document concise. Link to authoritative documentation instead of duplicating it.
+
+Initial project scaffold created through nexOS on 2026-10-18.
