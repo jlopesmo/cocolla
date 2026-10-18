@@ -13,6 +13,7 @@ import type {
   StitchElementV1,
 } from "../../../packages/engine/src/index.js";
 import { Icon } from "./components/Icon.js";
+import { ImageImportDialog } from "./components/ImageImportDialog.js";
 import { NewPatternDialog } from "./components/NewPatternDialog.js";
 import { PatternCanvas } from "./components/PatternCanvas.js";
 import {
@@ -127,6 +128,7 @@ export const App = (): React.JSX.Element => {
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [newPatternOpen, setNewPatternOpen] = useState(false);
+  const [imageImportOpen, setImageImportOpen] = useState(false);
   const [notice, setNotice] = useState<Notice>({
     tone: "info",
     text: "Local editing only — export JSON to keep your work.",
@@ -157,6 +159,12 @@ export const App = (): React.JSX.Element => {
   useEffect(() => {
     setSymbolDraft(activeColor?.symbol ?? "");
   }, [activeColor?.symbol, activeColorId]);
+
+  useEffect(() => {
+    if (!document.colors.some((color) => color.id === activeColorId)) {
+      setActiveColorId(document.colors[0]?.id ?? "");
+    }
+  }, [activeColorId, document.colors]);
 
   useEffect(() => {
     setSelectedColorIds((current) =>
@@ -384,6 +392,20 @@ export const App = (): React.JSX.Element => {
     }
   };
 
+  const applyImagePattern = (next: PatternDocument): void => {
+    setHistory((current) => commitDocument(current, next));
+    setActiveColorId(next.colors[0]?.id ?? "");
+    setSelectedColorIds(new Set(next.colors[0] === undefined ? [] : [next.colors[0].id]));
+    setIsolationEnabled(false);
+    setSelectedCell(null);
+    setImageImportOpen(false);
+    requestFit();
+    setNotice({
+      tone: "info",
+      text: `Created ${next.bounds.width / next.coordinateSystem.unitsPerFabricCell} × ${next.bounds.height / next.coordinateSystem.unitsPerFabricCell} image pattern locally.`,
+    });
+  };
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -472,7 +494,10 @@ export const App = (): React.JSX.Element => {
             type="file"
           />
           <button className="button secondary compact" onClick={() => importInputRef.current?.click()}>
-            <Icon name="upload" /> Import
+            <Icon name="upload" /> Import JSON
+          </button>
+          <button className="button secondary compact" onClick={() => setImageImportOpen(true)}>
+            <Icon name="image" /> Import image
           </button>
           <button className="button dark compact" onClick={exportJson}>
             <Icon name="download" /> Export JSON
@@ -713,6 +738,14 @@ export const App = (): React.JSX.Element => {
         onCreate={createNewPattern}
         open={newPatternOpen}
       />
+      {imageImportOpen ? (
+        <ImageImportDialog
+          currentDocument={document}
+          isDirty={isDirty}
+          onApply={applyImagePattern}
+          onCancel={() => setImageImportOpen(false)}
+        />
+      ) : null}
     </div>
   );
 };

@@ -6,6 +6,7 @@ interface IconProps {
     | "fit"
     | "grid"
     | "hand"
+    | "image"
     | "minus"
     | "pencil"
     | "redo"
@@ -23,6 +24,7 @@ const paths: Record<IconProps["name"], string> = {
   fit: "M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5",
   grid: "M4 4h16v16H4zM4 10h16M10 4v16",
   hand: "M8 12V6a2 2 0 0 1 4 0v4-1V5a2 2 0 0 1 4 0v5-1V7a2 2 0 0 1 4 0v7c0 4-3 7-7 7h-1c-3 0-5-1-7-4l-2-3a2 2 0 0 1 3-2l2 2v-2Z",
+  image: "M4 5h16v14H4zM7 15l3-3 2 2 2-2 3 3M8 9h.01",
   minus: "M5 12h14",
   pencil: "m4 20 4-1 11-11-3-3L5 16l-1 4Zm10-13 3 3",
   redo: "M20 7v5h-5M20 12a8 8 0 0 0-14-4M4 17v-5h5M4 12a8 8 0 0 0 14 4",
