@@ -13,6 +13,7 @@ import type {
   StitchElementV1,
 } from "../../../packages/engine/src/index.js";
 import { Icon } from "./components/Icon.js";
+import { ImageImportDialog } from "./components/ImageImportDialog.js";
 import { NewPatternDialog } from "./components/NewPatternDialog.js";
 import { PatternCanvas } from "./components/PatternCanvas.js";
 import {
@@ -52,6 +53,10 @@ import {
   type AppearancePreferences,
   type StitchDisplayMode,
 } from "./core/appearance.js";
+import {
+  CURATED_CHART_SYMBOLS,
+  availableCuratedChartSymbols,
+} from "./core/chart-symbols.js";
 import {
   viewportForWorkspace,
   zoomViewportAt,
@@ -127,6 +132,7 @@ export const App = (): React.JSX.Element => {
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [newPatternOpen, setNewPatternOpen] = useState(false);
+  const [imageImportOpen, setImageImportOpen] = useState(false);
   const [notice, setNotice] = useState<Notice>({
     tone: "info",
     text: "Local editing only — export JSON to keep your work.",
@@ -138,6 +144,15 @@ export const App = (): React.JSX.Element => {
   const document = history.present;
   const activeColor = document.colors.find((color) => color.id === activeColorId);
   const isolatedColorIds = isolationEnabled ? selectedColorIds : null;
+  const availableSymbolValues = useMemo(
+    () => new Set(
+      availableCuratedChartSymbols(
+        document.colors.map((color) => color.symbol),
+        activeColor?.symbol ?? "",
+      ).map((definition) => definition.value),
+    ),
+    [activeColor?.symbol, document.colors],
+  );
 
   const nextStitchId = useCallback((): string => {
     idCounterRef.current += 1;
@@ -157,6 +172,12 @@ export const App = (): React.JSX.Element => {
   useEffect(() => {
     setSymbolDraft(activeColor?.symbol ?? "");
   }, [activeColor?.symbol, activeColorId]);
+
+  useEffect(() => {
+    if (!document.colors.some((color) => color.id === activeColorId)) {
+      setActiveColorId(document.colors[0]?.id ?? "");
+    }
+  }, [activeColorId, document.colors]);
 
   useEffect(() => {
     setSelectedColorIds((current) =>
@@ -367,12 +388,13 @@ export const App = (): React.JSX.Element => {
     setAppearance((current) => ({ ...current, [key]: value }));
   };
 
-  const commitSymbol = (): void => {
-    if (activeColor === undefined || symbolDraft === activeColor.symbol) {
+  const commitSymbol = (nextSymbol = symbolDraft): void => {
+    setSymbolDraft(nextSymbol);
+    if (activeColor === undefined || nextSymbol === activeColor.symbol) {
       return;
     }
     try {
-      const updated = setPatternColorSymbol(document, activeColor.id, symbolDraft);
+      const updated = setPatternColorSymbol(document, activeColor.id, nextSymbol);
       setHistory(commitDocument(history, updated));
       setNotice({ tone: "info", text: `Symbol for ${activeColor.name} updated.` });
     } catch (error) {
@@ -382,6 +404,20 @@ export const App = (): React.JSX.Element => {
         text: error instanceof Error ? error.message : "Color symbol is invalid.",
       });
     }
+  };
+
+  const applyImagePattern = (next: PatternDocument): void => {
+    setHistory((current) => commitDocument(current, next));
+    setActiveColorId(next.colors[0]?.id ?? "");
+    setSelectedColorIds(new Set(next.colors[0] === undefined ? [] : [next.colors[0].id]));
+    setIsolationEnabled(false);
+    setSelectedCell(null);
+    setImageImportOpen(false);
+    requestFit();
+    setNotice({
+      tone: "info",
+      text: `Created ${next.bounds.width / next.coordinateSystem.unitsPerFabricCell} × ${next.bounds.height / next.coordinateSystem.unitsPerFabricCell} image pattern locally.`,
+    });
   };
 
   return (
@@ -472,7 +508,10 @@ export const App = (): React.JSX.Element => {
             type="file"
           />
           <button className="button secondary compact" onClick={() => importInputRef.current?.click()}>
-            <Icon name="upload" /> Import
+            <Icon name="upload" /> Import JSON
+          </button>
+          <button className="button secondary compact" onClick={() => setImageImportOpen(true)}>
+            <Icon name="image" /> Import image
           </button>
           <button className="button dark compact" onClick={exportJson}>
             <Icon name="download" /> Export JSON
@@ -531,12 +570,31 @@ export const App = (): React.JSX.Element => {
               <input
                 aria-label="Chart symbol for active color"
                 maxLength={8}
-                onBlur={commitSymbol}
+                onBlur={() => commitSymbol()}
                 onChange={(event) => setSymbolDraft(event.target.value)}
                 onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
                 value={symbolDraft}
               />
             </label>
+            <div aria-label="Curated chart symbols" className="symbol-picker" role="listbox">
+              {CURATED_CHART_SYMBOLS.map((definition) => {
+                const selected = activeColor?.symbol === definition.value;
+                const available = availableSymbolValues.has(definition.value);
+                return (
+                  <button
+                    aria-label={definition.label}
+                    aria-selected={selected}
+                    className={selected ? "selected" : ""}
+                    disabled={!available}
+                    key={definition.value}
+                    onClick={() => commitSymbol(definition.value)}
+                    role="option"
+                    title={available ? definition.label : `${definition.label} · already assigned`}
+                    type="button"
+                  >{definition.value}</button>
+                );
+              })}
+            </div>
           </section>
 
           <section className="sidebar-section">
@@ -612,7 +670,7 @@ export const App = (): React.JSX.Element => {
           <div className="canvas-statusbar">
             <span>{hoverCell === null ? "Move over the fabric" : `Column ${String(hoverCell.column + 1)}, row ${String(hoverCell.row + 1)}`}</span>
             <span>{tool === "pan" ? "Drag to pan" : tool === "eraser" ? "Drag to erase" : "Drag to stitch"}</span>
-            <span>Ctrl + wheel to zoom</span>
+            <span>Wheel to zoom</span>
           </div>
         </section>
 
@@ -713,6 +771,14 @@ export const App = (): React.JSX.Element => {
         onCreate={createNewPattern}
         open={newPatternOpen}
       />
+      {imageImportOpen ? (
+        <ImageImportDialog
+          currentDocument={document}
+          isDirty={isDirty}
+          onApply={applyImagePattern}
+          onCancel={() => setImageImportOpen(false)}
+        />
+      ) : null}
     </div>
   );
 };

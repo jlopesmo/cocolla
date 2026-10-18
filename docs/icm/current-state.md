@@ -8,12 +8,13 @@
 - Created as a framework-neutral blank project by nexOS Project Creator.
 - Milestone 1 was squash-merged to `main` through GitHub PR #1 at commit `8a679bccdae8e116af37aca23466da6f28db47d7`.
 - COC.2 implementation branch: `feat/coc2-visual-pattern-editor`.
-- COC.4.1 implementation branch: `feat/coc4-stitch-appearance` (pending review; not merged).
+- COC.4.1 was squash-merged through GitHub PR #3 at commit `d0a4c594ad66444f046f1be341d24eb51f595a14`.
+- COC.4.2 implementation branch: `feat/coc4-image-import` (pending review; not merged).
 - Architecture approved on 2026-10-18.
 
 ## Status
 
-COC.1, COC.2, and the COC.2.1 fit/rotation refinements are implemented. COC.4.1 stitch appearance, symbols, and color isolation are implemented and verified on `feat/coc4-stitch-appearance`, pending review and merge.
+COC.1, COC.2/COC.2.1, and COC.4.1 are merged. COC.4.2 local image-to-pattern conversion is implemented and verified on `feat/coc4-image-import`, pending review and merge.
 
 ### Implemented
 
@@ -29,6 +30,7 @@ COC.1, COC.2, and the COC.2.1 fit/rotation refinements are implemented. COC.4.1 
 - Responsive creative-editor shell with top toolbar, collapsible design/inspector sidebars, color palette, technique controls, and explicit local-file/unsaved status.
 - Layered Canvas 2D rendering with a 2× high-DPI cap, fabric grid, engine-derived full-cross geometry, viewport culling, pan, zoom, fit, hover, selection, and optional symbols.
 - Actual-container automatic fit and balanced centering on first load, new/import/rotation, explicit Fit, and fit-mode resizes; manual pan/zoom is preserved across later workspace resizes.
+- Pointer-anchored Canvas wheel zoom without a modifier key, with normalized wheel delta modes, bounded zoom, and page-scroll prevention scoped to handled Canvas events.
 - Engine-command-backed stitch placement, drag interpolation, recoloring, erasing, stable identifiers, and bounded immutable undo/redo history.
 - Exclusive revisioned document rotation commands for clockwise/counterclockwise 90° and 180°, with technique-owned geometry transformation and explicit rejection of unsupported techniques.
 - Blank-pattern creation with validated dimensions, editable pattern name, stitch/color summaries, canonical JSON download, and validated JSON import with explicit warnings/errors.
@@ -36,20 +38,27 @@ COC.1, COC.2, and the COC.2.1 fit/rotation refinements are implemented. COC.4.1 
 - Color, symbol-only, and color-plus-symbol stitch views; zoom-proportional adjustable visual thread thickness; optional color-matched occupied-cell tint with adjustable intensity.
 - Multi-color selection with Show All/Isolate Selected behavior and configurable dim opacity. Isolation is non-destructive and does not change the pattern document.
 - Versioned local editor appearance preferences for renderer-only settings. Isolation selection remains transient; chart symbols remain portable pattern data.
+- A curated set of 32 unique traditional geometric, circle, diamond, triangle, dot, line, directional, and star symbols. Curated symbols use font-independent normalized vector paths in Canvas; custom portable symbols retain the text fallback and existing editor command/JSON behavior.
+- Local PNG, JPEG, and WebP image selection plus drag-and-drop, with signature/dimension validation, explicit size limits, bounded browser decoding, and no server upload.
+- A conversion dialog with bounded source/pattern previews, editable fabric-cell dimensions, aspect-ratio lock, 2–32 color limit, optional dithering, stitch estimate, resulting palette, cancellation, and explicit unsaved-pattern replacement confirmation.
+- Dependency-free deterministic median-cut color quantization and optional Floyd–Steinberg error diffusion in a Web Worker. Debounced request identifiers prevent stale results from replacing newer previews.
+- Native version 1 full-cross pattern generation with row/column-derived stable stitch IDs, unique curated default chart symbols, validated integer coordinates, editable history integration, automatic fit, and canonical JSON compatibility.
+- Transparent source regions remain empty fabric when an output cell is fully transparent; partial alpha is composited onto white before quantization. The policy is recorded in the generated document extension.
+- Provider-neutral thread-catalog and color-matcher TypeScript ports with required source, licensing, redistribution, catalog-version, product-ID, algorithm-version, and color-provenance fields. No physical catalog data is bundled.
 
 ### Verification
 
-`npm run check` passed for COC.4.1 on 2026-10-18 using Node v24.14.0 on Windows x64:
+`npm run check` passed for COC.4.2 on 2026-10-18 using Node v24.14.0 on Windows x64:
 
 - Strict typecheck: passed.
-- Automated tests: 52 passed, 0 failed. Coverage includes appearance preference normalization/serialization, display-mode layers, zoom-proportional thread width, tint/isolation opacity, immutable multi-color selection, symbol command validation/atomicity/history, and symbol JSON round trips.
-- 100,000-stitch viewport-culling render plan: 59.0 ms in the regression test; fewer than 2,000 stitches entered the visible render plan.
-- Production web build: 269.42 kB JavaScript (83.57 kB gzip) and 13.97 kB CSS (3.67 kB gzip), excluding the generated source map.
-- Headless Microsoft Edge QA at 1440×900: initial fitted layout was visually inspected. An interactive browser probe changed to color-plus-symbol mode, set thread thickness to 30%, changed the active symbol to `Z`, placed a stitch, isolated the selected color, observed one stitch and document revision 2, verified versioned local appearance storage, and reported no browser errors.
+- Automated tests: 66 passed, 0 failed. New coverage includes dimension/aspect mapping, deterministic quantization, palette limits, dithering, transparency, PNG/JPEG/WebP headers, invalid/oversized inputs, stable stitches/symbols, serialization, stale-result cancellation, replacement preservation, post-import editing/rotation, bounded 100,000-cell conversion/document generation, wheel normalization/anchoring/bounds, and curated-symbol uniqueness/vector definitions.
+- The 100,000-cell conversion regression completed in 65.2 ms, native-document generation and validation completed in 170.6 ms, and the 100,000-stitch viewport-culling render plan completed in 55.4 ms during the final test run.
+- Production web build: 291.80 kB JavaScript (90.61 kB gzip) and 18.97 kB CSS (4.63 kB gzip), excluding the generated source map.
+- Headless Microsoft Edge QA at 1440×900 decoded actual locally generated PNG, JPEG, and WebP files. It verified invalid-file handling, the mounted drag-and-drop path, cancellation without replacement, 80×45 and debounced 120×68 previews, eight-color dithering, explicit replacement confirmation, a native 7,719-stitch result, rotation/undo, and zero captured browser errors. A follow-up probe verified that three rapid Canvas wheel events were canceled while an outside wheel event was not, cumulative pointer-anchored zoom changed from 0.431 to 0.885 with less than 0.02 cell drift, all 32 picker entries appeared, assigned symbols were disabled for other colors, vector symbol-only rendering worked, and no browser errors occurred. The conversion, resulting-pattern, and symbol-picker states were visually inspected.
 - The retained engine 10,000/100,000-stitch benchmark also passes through `npm run check`.
 
-Measurements are single-run development-machine observations, not service-level guarantees. Render planning and tint/symbol drawing operate only on the culled visible plan, but render planning still scans the full stitch collection. The tests do not measure sustained frame rate or peak memory, and no database, network, mobile-device, route-optimization, or Synology behavior is included.
+Measurements are single-run development-machine observations, not service-level guarantees. Conversion work is off the UI thread, but native document construction/validation on Apply and subsequent Canvas planning still run on the main thread. Render planning scans the full stitch collection. Tests do not measure peak memory, color-profile fidelity, sustained frame rate, mobile devices, or Synology behavior.
 
 ### Not implemented
 
-Fastify API, authentication, PostgreSQL persistence/RLS, server or browser draft persistence, worker jobs, image/external-format imports, printable or machine exports, progress tracking, deployment, and AI adapters are not implemented on this branch. COC.2 import/export remains limited to versioned Cocolla JSON files. COC.4.2 image import has not begun.
+Fastify API, authentication, PostgreSQL persistence/RLS, server or browser draft persistence, server worker jobs, printable or machine exports, progress tracking, deployment, and AI adapters are not implemented on this branch. Image import creates full-cross patterns only and does not preserve the source image in the portable document. DMC browsing and matching are intentionally deferred until an exact catalog source, license, attribution, redistribution policy, and matching algorithm are approved; no official color data is claimed or included.

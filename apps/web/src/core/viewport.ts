@@ -30,6 +30,12 @@ export type WorkspaceViewportMode = "fit" | "manual";
 export const clampZoom = (zoom: number): number =>
   Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom));
 
+export const wheelZoomFactor = (delta: number, deltaMode: number): number => {
+  const pixelsPerUnit = deltaMode === 1 ? 16 : deltaMode === 2 ? 300 : 1;
+  const normalized = Math.min(160, Math.max(-160, delta * pixelsPerUnit));
+  return Math.exp(-normalized * 0.002);
+};
+
 export const cellPixels = (viewport: Viewport): number =>
   BASE_CELL_PIXELS * viewport.zoom;
 
