@@ -9,12 +9,13 @@
 - Milestone 1 was squash-merged to `main` through GitHub PR #1 at commit `8a679bccdae8e116af37aca23466da6f28db47d7`.
 - COC.2 implementation branch: `feat/coc2-visual-pattern-editor`.
 - COC.4.1 was squash-merged through GitHub PR #3 at commit `d0a4c594ad66444f046f1be341d24eb51f595a14`.
-- COC.4.2 implementation branch: `feat/coc4-image-import` (pending review; not merged).
+- COC.4.2 was squash-merged through GitHub PR #4 at commit `2c35dd107dae67bd7c707d0b61eb98aacc6c7e1c`.
+- Post-merge review found that alpha values 1–15 were incorrectly treated as fully transparent. The two-file correction is validated on `fix/coc4-image-alpha-policy` in PR #5 but is not yet merged.
 - Architecture approved on 2026-10-18.
 
 ## Status
 
-COC.1, COC.2/COC.2.1, and COC.4.1 are merged. COC.4.2 local image-to-pattern conversion is implemented and verified on `feat/coc4-image-import`, pending review and merge.
+COC.1, COC.2/COC.2.1, COC.4.1, and the main COC.4.2 change are merged. COC.4.2 has one validated corrective PR pending: PR #5 makes every nonzero-alpha image cell visible as required by ADR 0006. COC.4.3 thread-catalog architecture and source research is proposed in `docs/architecture/coc4-thread-catalog-plan.md`; no catalog data, matcher, dependency, or thread-mapping UI has been implemented.
 
 ### Implemented
 
@@ -58,6 +59,10 @@ COC.1, COC.2/COC.2.1, and COC.4.1 are merged. COC.4.2 local image-to-pattern con
 - The retained engine 10,000/100,000-stitch benchmark also passes through `npm run check`.
 
 Measurements are single-run development-machine observations, not service-level guarantees. Conversion work is off the UI thread, but native document construction/validation on Apply and subsequent Canvas planning still run on the main thread. Render planning scans the full stitch collection. Tests do not measure peak memory, color-profile fidelity, sustained frame rate, mobile devices, or Synology behavior.
+
+Immediately before PR #4 was merged, `npm run check` again passed with 66 tests and `npm run build` passed. That run observed 49.8 ms for the 100,000-cell conversion regression, 159.2 ms for native document generation/validation, and 42.9 ms for the 100,000-stitch render-plan regression. GitHub had no configured Actions workflow or commit status checks for the PR, so local validation is the recorded merge evidence.
+
+For the PR #5 correction, `npm run check` passed with 67 tests and `npm run build` passed. Its single added regression proves that alpha value 1 remains a visible stitch while alpha 0 remains empty. That run observed 94.4 ms for 100,000-cell conversion, 321.5 ms for 100,000-cell document generation/validation, and 51.9 ms for the 100,000-stitch render-plan regression; the standalone engine benchmark also completed at both 10,000 and 100,000 stitches.
 
 ### Not implemented
 

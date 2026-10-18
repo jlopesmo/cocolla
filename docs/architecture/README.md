@@ -10,5 +10,6 @@ The application architecture was approved as Cocolla's initial technical directi
 - [ADR 0006 — Local image-to-pattern conversion](../decisions/0006-local-image-to-pattern-conversion.md)
 - [ADR 0007 — Wheel zoom, chart-symbol library, and thread-catalog boundary](../decisions/0007-wheel-zoom-symbol-library-and-thread-catalog-boundary.md)
 - [COC.3 private-persistence breakdown](coc3-private-persistence-plan.md)
+- [COC.4.3 thread-catalog and color-matching proposal](coc4-thread-catalog-plan.md)
 
-The proposal was prepared for COC.1 on 2026-10-18. COC.1 implemented the document contract and UI-independent engine; COC.2 implemented the local visual editor; COC.4.1 extended renderer preferences and portable color symbols; COC.4.2 adds local image conversion, direct wheel zoom, a vector-backed symbol library, and a catalog-neutral future thread-mapping port without backend or runtime dependencies. Backend, database, authentication, and deployment configuration do not exist on this branch.
+The proposal was prepared for COC.1 on 2026-10-18. COC.1 implemented the document contract and UI-independent engine; COC.2 implemented the local visual editor; COC.4.1 extended renderer preferences and portable color symbols; COC.4.2 added local image conversion, direct wheel zoom, a vector-backed symbol library, and a catalog-neutral future thread-mapping port without backend or runtime dependencies. COC.4.3 remains a proposal and bundles no thread data. Backend, database, authentication, and deployment configuration do not exist on this branch.
