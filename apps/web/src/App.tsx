@@ -25,6 +25,7 @@ import {
   renamePattern,
   rotatePattern,
   selectActiveColor,
+  setPatternColorSymbol,
   unsupportedTechniqueCount,
   type PatternDimensions,
 } from "./core/pattern.js";
@@ -35,6 +36,22 @@ import {
   undoDocument,
 } from "./core/history.js";
 import type { EditorTool } from "./core/interaction.js";
+import {
+  APPEARANCE_STORAGE_KEY,
+  DEFAULT_APPEARANCE_PREFERENCES,
+  MAX_DIM_OPACITY,
+  MAX_THREAD_THICKNESS,
+  MAX_TINT_OPACITY,
+  MIN_DIM_OPACITY,
+  MIN_THREAD_THICKNESS,
+  MIN_TINT_OPACITY,
+  parseAppearancePreferences,
+  reconcileSelectedColors,
+  serializeAppearancePreferences,
+  toggleSelectedColor,
+  type AppearancePreferences,
+  type StitchDisplayMode,
+} from "./core/appearance.js";
 import {
   viewportForWorkspace,
   zoomViewportAt,
@@ -48,6 +65,14 @@ type Notice = { readonly tone: "info" | "error"; readonly text: string } | null;
 
 const INITIAL_DIMENSIONS: PatternDimensions = { width: 40, height: 30 };
 const initialDocument = createBlankPattern("Untitled sampler", INITIAL_DIMENSIONS);
+
+const loadAppearancePreferences = (): AppearancePreferences => {
+  try {
+    return parseAppearancePreferences(window.localStorage.getItem(APPEARANCE_STORAGE_KEY));
+  } catch {
+    return DEFAULT_APPEARANCE_PREFERENCES;
+  }
+};
 
 const stitchAtCell = (
   document: PatternDocument,
@@ -94,7 +119,11 @@ export const App = (): React.JSX.Element => {
   const [hoverCell, setHoverCell] = useState<CellPoint | null>(null);
   const [selectedCell, setSelectedCell] = useState<CellPoint | null>(null);
   const [showGrid, setShowGrid] = useState(true);
-  const [showSymbols, setShowSymbols] = useState(false);
+  const [appearance, setAppearance] = useState(loadAppearancePreferences);
+  const [selectedColorIds, setSelectedColorIds] = useState<ReadonlySet<string>>(
+    () => new Set(initialDocument.colors[0] === undefined ? [] : [initialDocument.colors[0].id]),
+  );
+  const [isolationEnabled, setIsolationEnabled] = useState(false);
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [newPatternOpen, setNewPatternOpen] = useState(false);
@@ -103,9 +132,12 @@ export const App = (): React.JSX.Element => {
     text: "Local editing only — export JSON to keep your work.",
   });
   const [nameDraft, setNameDraft] = useState(initialDocument.metadata.name);
+  const [symbolDraft, setSymbolDraft] = useState(initialDocument.colors[0]?.symbol ?? "");
   const importInputRef = useRef<HTMLInputElement>(null);
   const idCounterRef = useRef(0);
   const document = history.present;
+  const activeColor = document.colors.find((color) => color.id === activeColorId);
+  const isolatedColorIds = isolationEnabled ? selectedColorIds : null;
 
   const nextStitchId = useCallback((): string => {
     idCounterRef.current += 1;
@@ -121,6 +153,33 @@ export const App = (): React.JSX.Element => {
   useEffect(() => {
     setNameDraft(document.metadata.name);
   }, [document.metadata.name]);
+
+  useEffect(() => {
+    setSymbolDraft(activeColor?.symbol ?? "");
+  }, [activeColor?.symbol, activeColorId]);
+
+  useEffect(() => {
+    setSelectedColorIds((current) =>
+      reconcileSelectedColors(current, document.colors.map((color) => color.id)),
+    );
+  }, [document.colors]);
+
+  useEffect(() => {
+    if (isolationEnabled && selectedColorIds.size === 0) {
+      setIsolationEnabled(false);
+    }
+  }, [isolationEnabled, selectedColorIds]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        APPEARANCE_STORAGE_KEY,
+        serializeAppearancePreferences(appearance),
+      );
+    } catch {
+      // The editor still works when storage is blocked or unavailable.
+    }
+  }, [appearance]);
 
   useLayoutEffect(() => {
     if (canvasSize.width <= 1 || canvasSize.height <= 1) {
@@ -207,6 +266,8 @@ export const App = (): React.JSX.Element => {
     setHistory(createDocumentHistory(next));
     setSavedDocument(null);
     setActiveColorId(next.colors[0]?.id ?? "");
+    setSelectedColorIds(new Set(next.colors[0] === undefined ? [] : [next.colors[0].id]));
+    setIsolationEnabled(false);
     setSelectedCell(null);
     setNewPatternOpen(false);
     requestFit();
@@ -251,6 +312,8 @@ export const App = (): React.JSX.Element => {
       setHistory(createDocumentHistory(parsed.document));
       setSavedDocument(parsed.document);
       setActiveColorId(parsed.document.colors[0]?.id ?? "");
+      setSelectedColorIds(new Set(parsed.document.colors[0] === undefined ? [] : [parsed.document.colors[0].id]));
+      setIsolationEnabled(false);
       setSelectedCell(null);
       requestFit();
       setNotice({
@@ -293,6 +356,30 @@ export const App = (): React.JSX.Element => {
       setNotice({
         tone: "error",
         text: error instanceof Error ? `Rotation failed: ${error.message}` : "Rotation failed.",
+      });
+    }
+  };
+
+  const updateAppearance = <Key extends keyof AppearancePreferences>(
+    key: Key,
+    value: AppearancePreferences[Key],
+  ): void => {
+    setAppearance((current) => ({ ...current, [key]: value }));
+  };
+
+  const commitSymbol = (): void => {
+    if (activeColor === undefined || symbolDraft === activeColor.symbol) {
+      return;
+    }
+    try {
+      const updated = setPatternColorSymbol(document, activeColor.id, symbolDraft);
+      setHistory(commitDocument(history, updated));
+      setNotice({ tone: "info", text: `Symbol for ${activeColor.name} updated.` });
+    } catch (error) {
+      setSymbolDraft(activeColor.symbol);
+      setNotice({
+        tone: "error",
+        text: error instanceof Error ? error.message : "Color symbol is invalid.",
       });
     }
   };
@@ -436,9 +523,20 @@ export const App = (): React.JSX.Element => {
               ))}
             </div>
             <div className="active-color-row">
-              <span className="color-dot" style={{ background: document.colors.find((color) => color.id === activeColorId)?.rgb }} />
-              <div><strong>{document.colors.find((color) => color.id === activeColorId)?.name}</strong><small>Logical color</small></div>
+              <span className="color-dot" style={{ background: activeColor?.rgb }} />
+              <div><strong>{activeColor?.name}</strong><small>Logical color</small></div>
             </div>
+            <label className="field-label symbol-field">
+              Chart symbol
+              <input
+                aria-label="Chart symbol for active color"
+                maxLength={8}
+                onBlur={commitSymbol}
+                onChange={(event) => setSymbolDraft(event.target.value)}
+                onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+                value={symbolDraft}
+              />
+            </label>
           </section>
 
           <section className="sidebar-section">
@@ -448,7 +546,45 @@ export const App = (): React.JSX.Element => {
 
           <section className="sidebar-section canvas-options">
             <label><span><Icon name="grid" /> Show fabric grid</span><input checked={showGrid} onChange={(event) => setShowGrid(event.target.checked)} type="checkbox" /></label>
-            <label><span><span className="symbol-icon">A</span> Stitch symbols</span><input checked={showSymbols} onChange={(event) => setShowSymbols(event.target.checked)} type="checkbox" /></label>
+            <label className="stacked-option">
+              <span><span className="symbol-icon">A</span> Stitch display</span>
+              <select
+                aria-label="Stitch display mode"
+                onChange={(event) => updateAppearance("displayMode", event.target.value as StitchDisplayMode)}
+                value={appearance.displayMode}
+              >
+                <option value="color">Color</option>
+                <option value="symbol">Symbols</option>
+                <option value="color-symbol">Color + symbols</option>
+              </select>
+            </label>
+            <label className="range-option">
+              <span>Thread thickness <output>{Math.round(appearance.threadThickness * 100)}%</output></span>
+              <input
+                aria-label="Thread thickness"
+                max={MAX_THREAD_THICKNESS}
+                min={MIN_THREAD_THICKNESS}
+                onChange={(event) => updateAppearance("threadThickness", event.target.valueAsNumber)}
+                step="0.01"
+                type="range"
+                value={appearance.threadThickness}
+              />
+            </label>
+            <label><span>Cell background tint</span><input checked={appearance.cellTintEnabled} onChange={(event) => updateAppearance("cellTintEnabled", event.target.checked)} type="checkbox" /></label>
+            {appearance.cellTintEnabled ? (
+              <label className="range-option">
+                <span>Tint intensity <output>{Math.round(appearance.cellTintOpacity * 100)}%</output></span>
+                <input
+                  aria-label="Cell tint intensity"
+                  max={MAX_TINT_OPACITY}
+                  min={MIN_TINT_OPACITY}
+                  onChange={(event) => updateAppearance("cellTintOpacity", event.target.valueAsNumber)}
+                  step="0.01"
+                  type="range"
+                  value={appearance.cellTintOpacity}
+                />
+              </label>
+            ) : null}
           </section>
         </aside>
 
@@ -457,6 +593,8 @@ export const App = (): React.JSX.Element => {
         <section className="canvas-stage" aria-label="Pattern workspace">
           <PatternCanvas
             document={document}
+            appearance={appearance}
+            isolatedColorIds={isolatedColorIds}
             onCells={applyCells}
             onHoverCell={setHoverCell}
             onSelectCell={setSelectedCell}
@@ -464,7 +602,6 @@ export const App = (): React.JSX.Element => {
             onViewportChange={updateManualViewport}
             selectedCell={selectedCell}
             showGrid={showGrid}
-            showSymbols={showSymbols}
             tool={tool}
             viewport={viewport}
           />
@@ -507,18 +644,44 @@ export const App = (): React.JSX.Element => {
 
           <section className="sidebar-section">
             <div className="section-title"><span>Color usage</span><small>{[...usage.values()].filter((count) => count > 0).length} used</small></div>
+            <div className="filter-actions">
+              <button className="button secondary compact" onClick={() => setIsolationEnabled(false)}>Show all</button>
+              <button
+                className="button primary compact"
+                disabled={selectedColorIds.size === 0}
+                onClick={() => setIsolationEnabled(true)}
+              >Isolate selected</button>
+            </div>
             <div className="usage-list">
               {document.colors.map((color) => {
                 const count = usage.get(color.id) ?? 0;
-                return count === 0 ? null : (
-                  <div className="usage-row" key={color.id}>
+                return (
+                  <label className={`usage-row ${isolationEnabled && selectedColorIds.has(color.id) ? "isolated" : ""}`} key={color.id}>
+                    <input
+                      aria-label={`Select ${color.name} for isolation`}
+                      checked={selectedColorIds.has(color.id)}
+                      onChange={() => setSelectedColorIds((current) => toggleSelectedColor(current, color.id))}
+                      type="checkbox"
+                    />
                     <span className="color-dot" style={{ background: color.rgb }} />
-                    <span>{color.name}</span><strong>{count.toLocaleString()}</strong>
-                  </div>
+                    <span>{color.symbol} · {color.name}</span><strong>{count.toLocaleString()}</strong>
+                  </label>
                 );
               })}
-              {document.stitches.length === 0 ? <p className="empty-note">Place a stitch to build the palette summary.</p> : null}
             </div>
+            <label className="range-option dim-opacity">
+              <span>Unselected opacity <output>{Math.round(appearance.dimOpacity * 100)}%</output></span>
+              <input
+                aria-label="Unselected color opacity"
+                max={MAX_DIM_OPACITY}
+                min={MIN_DIM_OPACITY}
+                onChange={(event) => updateAppearance("dimOpacity", event.target.valueAsNumber)}
+                step="0.01"
+                type="range"
+                value={appearance.dimOpacity}
+              />
+            </label>
+            {document.stitches.length === 0 ? <p className="empty-note">Place a stitch to build the palette summary.</p> : null}
           </section>
 
           <section className="sidebar-section">

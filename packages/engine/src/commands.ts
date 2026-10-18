@@ -40,6 +40,11 @@ export type PatternCommand =
       readonly type: "stitch.recolor";
       readonly stitchId: string;
       readonly colorId: string;
+    }
+  | {
+      readonly type: "color.set-symbol";
+      readonly colorId: string;
+      readonly symbol: string;
     };
 
 export interface PatternCommandBatch {
@@ -183,8 +188,13 @@ export const applyPatternCommands = (
   const indexes = new Map(
     document.stitches.map((stitch, index) => [stitch.id, index] as const),
   );
+  const colors = [...document.colors];
+  const colorIndexes = new Map(
+    document.colors.map((color, index) => [color.id, index] as const),
+  );
   const colorIds = new Set(document.colors.map((color) => color.id));
   const addedIds = new Set<string>();
+  let colorsChanged = false;
 
   for (const command of batch.commands) {
     switch (command.type) {
@@ -267,12 +277,32 @@ export const applyPatternCommands = (
         };
         break;
       }
+      case "color.set-symbol": {
+        const index = colorIndexes.get(command.colorId);
+        if (index === undefined) {
+          throw new PatternCommandError(
+            "COLOR_NOT_FOUND",
+            `Color not found: ${command.colorId}.`,
+          );
+        }
+        const color = colors[index];
+        if (color === undefined) {
+          throw new PatternCommandError(
+            "COLOR_NOT_FOUND",
+            `Color not found: ${command.colorId}.`,
+          );
+        }
+        colors[index] = { ...color, symbol: command.symbol };
+        colorsChanged = true;
+        break;
+      }
     }
   }
 
   const updated: PatternDocument = {
     ...document,
     revision: document.revision + 1,
+    colors: colorsChanged ? colors : document.colors,
     stitches: slots.filter(
       (stitch): stitch is StitchElementV1 => stitch !== undefined,
     ),

@@ -7,6 +7,10 @@
 - COC.2 — first functional visual pattern editor with React, Vite, layered Canvas 2D, engine-backed editing, local undo/redo, and JSON import/export.
 - COC.2.1 — actual-container fit/centering and engine-backed 90°/180° pattern rotation.
 
+## Implemented on feature branch — pending review
+
+- COC.4.1 — stitch appearance controls, portable editable chart symbols, multi-color isolation, and occupied-cell tint on `feat/coc4-stitch-appearance`.
+
 ## Next — requires separate authorization
 
 - Private persistence vertical slice with Fastify, PostgreSQL, authentication, ownership enforcement, RLS, migrations, and cross-user isolation tests. This was previously numbered Milestone 2 but was explicitly deferred behind the authorized COC.2 editor.
@@ -14,6 +18,7 @@
 
 ## Later
 
+- COC.4.2 image import; not part of COC.4.1.
 - Palettes and optional physical thread mappings.
 - Stitching routes and front/estimated-back views beyond the initial engine interfaces.
 - Per-user progress, exports, imports, and Synology release hardening.

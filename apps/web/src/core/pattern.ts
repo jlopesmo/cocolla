@@ -245,6 +245,17 @@ export const rotatePattern = (
     rotation,
   });
 
+export const setPatternColorSymbol = (
+  document: PatternDocument,
+  colorId: string,
+  symbol: string,
+): PatternDocument =>
+  applyPatternCommand(document, {
+    type: "color.set-symbol",
+    colorId,
+    symbol,
+  });
+
 export const parsePatternJson = (serialized: string): ParsedPattern => {
   const document = deserializePatternDocument(serialized);
   const validation = validatePatternDocument(document);
