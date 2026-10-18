@@ -1,6 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-import type { PatternDocument, StitchElementV1 } from "../../../packages/engine/src/index.js";
+import type {
+  PatternDocument,
+  PatternRotation,
+  StitchElementV1,
+} from "../../../packages/engine/src/index.js";
 import { Icon } from "./components/Icon.js";
 import { NewPatternDialog } from "./components/NewPatternDialog.js";
 import { PatternCanvas } from "./components/PatternCanvas.js";
@@ -12,6 +23,7 @@ import {
   exportPatternJson,
   parsePatternJson,
   renamePattern,
+  rotatePattern,
   selectActiveColor,
   unsupportedTechniqueCount,
   type PatternDimensions,
@@ -24,11 +36,12 @@ import {
 } from "./core/history.js";
 import type { EditorTool } from "./core/interaction.js";
 import {
-  fitDocumentViewport,
+  viewportForWorkspace,
   zoomViewportAt,
   type CellPoint,
   type Viewport,
   type ViewportSize,
+  type WorkspaceViewportMode,
 } from "./core/viewport.js";
 
 type Notice = { readonly tone: "info" | "error"; readonly text: string } | null;
@@ -75,7 +88,9 @@ export const App = (): React.JSX.Element => {
     offsetY: 42,
     zoom: 1,
   });
-  const [canvasSize, setCanvasSize] = useState<ViewportSize>({ width: 900, height: 650 });
+  const [canvasSize, setCanvasSize] = useState<ViewportSize>({ width: 0, height: 0 });
+  const [viewportMode, setViewportMode] = useState<WorkspaceViewportMode>("fit");
+  const [fitRequest, setFitRequest] = useState(0);
   const [hoverCell, setHoverCell] = useState<CellPoint | null>(null);
   const [selectedCell, setSelectedCell] = useState<CellPoint | null>(null);
   const [showGrid, setShowGrid] = useState(true);
@@ -90,7 +105,6 @@ export const App = (): React.JSX.Element => {
   const [nameDraft, setNameDraft] = useState(initialDocument.metadata.name);
   const importInputRef = useRef<HTMLInputElement>(null);
   const idCounterRef = useRef(0);
-  const fittedDocumentRef = useRef<PatternDocument | null>(null);
   const document = history.present;
 
   const nextStitchId = useCallback((): string => {
@@ -99,20 +113,36 @@ export const App = (): React.JSX.Element => {
     return `stitch-${randomPart}-${String(idCounterRef.current)}`;
   }, []);
 
-  const fitCanvas = useCallback(
-    (target = document): void => {
-      setViewport(fitDocumentViewport(target, canvasSize));
-    },
-    [canvasSize, document],
-  );
+  const requestFit = useCallback((): void => {
+    setViewportMode("fit");
+    setFitRequest((request) => request + 1);
+  }, []);
 
   useEffect(() => {
     setNameDraft(document.metadata.name);
-    if (fittedDocumentRef.current !== document && history.past.length === 0) {
-      fittedDocumentRef.current = document;
-      fitCanvas(document);
+  }, [document.metadata.name]);
+
+  useLayoutEffect(() => {
+    if (canvasSize.width <= 1 || canvasSize.height <= 1) {
+      return;
     }
-  }, [document, fitCanvas, history.past.length]);
+    setViewport((current) =>
+      viewportForWorkspace(document, canvasSize, current, viewportMode),
+    );
+  }, [
+    canvasSize.height,
+    canvasSize.width,
+    document.bounds.height,
+    document.bounds.width,
+    document.coordinateSystem.unitsPerFabricCell,
+    fitRequest,
+    viewportMode,
+  ]);
+
+  const updateManualViewport = useCallback((next: Viewport): void => {
+    setViewportMode("manual");
+    setViewport(next);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {
@@ -179,7 +209,7 @@ export const App = (): React.JSX.Element => {
     setActiveColorId(next.colors[0]?.id ?? "");
     setSelectedCell(null);
     setNewPatternOpen(false);
-    fittedDocumentRef.current = null;
+    requestFit();
     setNotice({ tone: "info", text: "Blank local pattern created." });
   };
 
@@ -222,7 +252,7 @@ export const App = (): React.JSX.Element => {
       setSavedDocument(parsed.document);
       setActiveColorId(parsed.document.colors[0]?.id ?? "");
       setSelectedCell(null);
-      fittedDocumentRef.current = null;
+      requestFit();
       setNotice({
         tone: parsed.warnings.length === 0 ? "info" : "error",
         text:
@@ -243,12 +273,28 @@ export const App = (): React.JSX.Element => {
   };
 
   const zoomBy = (factor: number): void => {
+    setViewportMode("manual");
     setViewport((current) =>
       zoomViewportAt(current, current.zoom * factor, {
         x: canvasSize.width / 2,
         y: canvasSize.height / 2,
       }),
     );
+  };
+
+  const applyRotation = (rotation: PatternRotation): void => {
+    try {
+      const rotated = rotatePattern(document, rotation);
+      setHistory((current) => commitDocument(current, rotated));
+      setSelectedCell(null);
+      requestFit();
+      setNotice({ tone: "info", text: "Pattern rotated and fitted to the workspace." });
+    } catch (error) {
+      setNotice({
+        tone: "error",
+        text: error instanceof Error ? `Rotation failed: ${error.message}` : "Rotation failed.",
+      });
+    }
   };
 
   return (
@@ -286,6 +332,34 @@ export const App = (): React.JSX.Element => {
             title="Redo (Ctrl+Y)"
           ><Icon name="redo" /></button>
         </div>
+        <details className="transform-menu">
+          <summary className="button secondary compact">
+            <Icon name="rotate-cw" /> Transform
+          </summary>
+          <div className="transform-popover" role="menu" aria-label="Pattern transforms">
+            <button
+              onClick={(event) => {
+                event.currentTarget.closest("details")?.removeAttribute("open");
+                applyRotation("clockwise-90");
+              }}
+              role="menuitem"
+            ><Icon name="rotate-cw" /> Rotate 90° clockwise</button>
+            <button
+              onClick={(event) => {
+                event.currentTarget.closest("details")?.removeAttribute("open");
+                applyRotation("counterclockwise-90");
+              }}
+              role="menuitem"
+            ><Icon name="rotate-ccw" /> Rotate 90° counterclockwise</button>
+            <button
+              onClick={(event) => {
+                event.currentTarget.closest("details")?.removeAttribute("open");
+                applyRotation("180");
+              }}
+              role="menuitem"
+            ><span className="turn-180" aria-hidden="true">180°</span> Rotate 180°</button>
+          </div>
+        </details>
         <div className="toolbar-spacer" />
         <div className="toolbar-group zoom-group">
           <button aria-label="Zoom out" className="icon-button" onClick={() => zoomBy(0.8)}>
@@ -295,7 +369,7 @@ export const App = (): React.JSX.Element => {
           <button aria-label="Zoom in" className="icon-button" onClick={() => zoomBy(1.25)}>
             <Icon name="add" />
           </button>
-          <button aria-label="Fit pattern" className="icon-button" onClick={() => fitCanvas()} title="Fit pattern">
+          <button aria-label="Fit pattern" className="icon-button" onClick={requestFit} title="Fit pattern">
             <Icon name="fit" />
           </button>
         </div>
@@ -387,7 +461,7 @@ export const App = (): React.JSX.Element => {
             onHoverCell={setHoverCell}
             onSelectCell={setSelectedCell}
             onSizeChange={setCanvasSize}
-            onViewportChange={setViewport}
+            onViewportChange={updateManualViewport}
             selectedCell={selectedCell}
             showGrid={showGrid}
             showSymbols={showSymbols}

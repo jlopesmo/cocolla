@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173/`. The editor is local-only in COC.2: use **Export JSON** to save a pattern and **Import** to reopen a valid Cocolla pattern document. No browser or server database persistence is claimed.
+Open `http://127.0.0.1:5173/`. The editor automatically fits patterns to the workspace and supports engine-backed 90°/180° rotation. It remains local-only in COC.2: use **Export JSON** to save a pattern and **Import** to reopen a valid Cocolla pattern document. No browser or server database persistence is claimed.
 
 ## Commands
 

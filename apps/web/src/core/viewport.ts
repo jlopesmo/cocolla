@@ -1,7 +1,7 @@
 import type { IntegerPoint, PatternDocument } from "../../../../packages/engine/src/index.js";
 
 export const BASE_CELL_PIXELS = 26;
-export const MIN_ZOOM = 0.2;
+export const MIN_ZOOM = 0.01;
 export const MAX_ZOOM = 8;
 
 export interface ScreenPoint {
@@ -24,6 +24,8 @@ export interface ViewportSize {
   readonly width: number;
   readonly height: number;
 }
+
+export type WorkspaceViewportMode = "fit" | "manual";
 
 export const clampZoom = (zoom: number): number =>
   Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom));
@@ -119,6 +121,17 @@ export const fitDocumentViewport = (
     offsetY: (size.height - renderedHeight) / 2,
   };
 };
+
+export const viewportForWorkspace = (
+  document: PatternDocument,
+  size: ViewportSize,
+  current: Viewport,
+  mode: WorkspaceViewportMode,
+  padding = 44,
+): Viewport =>
+  mode === "fit"
+    ? fitDocumentViewport(document, size, padding)
+    : current;
 
 export const isCellInsideDocument = (
   document: PatternDocument,

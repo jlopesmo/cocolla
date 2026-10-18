@@ -9,6 +9,8 @@ interface IconProps {
     | "minus"
     | "pencil"
     | "redo"
+    | "rotate-ccw"
+    | "rotate-cw"
     | "upload"
     | "undo";
   readonly size?: number;
@@ -24,6 +26,8 @@ const paths: Record<IconProps["name"], string> = {
   minus: "M5 12h14",
   pencil: "m4 20 4-1 11-11-3-3L5 16l-1 4Zm10-13 3 3",
   redo: "M20 7v5h-5M20 12a8 8 0 0 0-14-4M4 17v-5h5M4 12a8 8 0 0 0 14 4",
+  "rotate-ccw": "M4 4v6h6M4 10a8 8 0 1 0 2-5",
+  "rotate-cw": "M20 4v6h-6m6 0a8 8 0 1 1-2-5",
   upload: "M12 21V9m0 0 5 5m-5-5-5 5M5 3h14",
   undo: "M4 7v5h5M4 12A8 8 0 0 1 18 8M20 17v-5h-5M20 12a8 8 0 0 1-14 4",
 };

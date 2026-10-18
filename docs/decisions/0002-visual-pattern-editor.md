@@ -17,6 +17,8 @@ COC.2 authorizes the first usable browser editor ahead of the previously propose
 - Apply stitch placement, removal, and recoloring through engine command APIs. Use bounded immutable document snapshots for local undo/redo.
 - Keep server persistence out of scope. Export canonical versioned JSON downloads and import through engine deserialization, migration, and validation with explicit errors and warnings.
 - Preserve unsupported technique payloads on import/export and report that unsupported elements are not rendered.
+- Track the viewport as either fit-managed or manually adjusted. Fit-managed viewports recalculate from actual canvas-container dimensions; a user pan or zoom switches to manual mode until Fit, import, new-pattern creation, or rotation explicitly requests fitting.
+- Apply pattern rotation through the engine document command described by ADR 0003 rather than transforming the Canvas or mutating document internals in React.
 
 ## Consequences
 

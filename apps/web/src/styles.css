@@ -67,6 +67,40 @@ canvas:focus-visible {
 .toolbar-spacer { flex: 1; }
 .toolbar-history { border-left: 1px solid var(--line); padding-left: 12px; }
 
+.transform-menu { position: relative; }
+.transform-menu > summary { list-style: none; }
+.transform-menu > summary::-webkit-details-marker { display: none; }
+.transform-popover {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  display: grid;
+  left: 0;
+  min-width: 230px;
+  padding: 6px;
+  position: absolute;
+  top: calc(100% + 8px);
+  z-index: 40;
+}
+.transform-popover button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  font-size: 11px;
+  gap: 9px;
+  min-height: 36px;
+  padding: 7px 9px;
+  text-align: left;
+}
+.transform-popover button:hover,
+.transform-popover button:focus-visible { background: #eceee9; }
+.turn-180 { font-size: 9px; font-weight: 750; text-align: center; width: 18px; }
+
 .button,
 .icon-button,
 .panel-toggle,

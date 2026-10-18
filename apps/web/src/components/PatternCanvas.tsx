@@ -382,6 +382,9 @@ export const PatternCanvas = ({
       <canvas
         aria-label="Interactive stitching canvas"
         className="pattern-canvas overlay"
+        data-viewport-offset-x={viewport.offsetX}
+        data-viewport-offset-y={viewport.offsetY}
+        data-viewport-zoom={viewport.zoom}
         onContextMenu={(event) => event.preventDefault()}
         onPointerCancel={finishPointer}
         onPointerDown={handlePointerDown}

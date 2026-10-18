@@ -13,6 +13,7 @@ import {
   exportPatternJson,
   parsePatternJson,
   renamePattern,
+  rotatePattern,
   selectActiveColor,
   validatePatternDimensions,
 } from "../src/core/pattern.js";
@@ -122,6 +123,34 @@ test("bounded snapshot history supports undo and redo without revision corruptio
   history = redoDocument(history);
   assert.equal(history.present.stitches.length, 1);
   assert.equal(validatePatternDocument(history.present).valid, true);
+});
+
+test("rotation participates in undo, redo, and canonical JSON round trips", () => {
+  const ids = sequentialIds();
+  const base = createBlankPattern("Rotate", { width: 6, height: 4 });
+  const placed = drawFullCrossCells(
+    base,
+    [{ column: 1, row: 2 }, { column: 5, row: 0 }],
+    base.colors[0]?.id ?? "",
+    ids,
+  );
+  const rotated = rotatePattern(placed, "clockwise-90");
+  assert.deepEqual(rotated.bounds, { width: 4 * 1024, height: 6 * 1024 });
+  assert.deepEqual(
+    rotated.stitches.map((stitch) => stitch.geometry.anchor),
+    [{ x: 1024, y: 1024 }, { x: 3 * 1024, y: 5 * 1024 }],
+  );
+
+  let history = createDocumentHistory(placed);
+  history = commitDocument(history, rotated);
+  history = undoDocument(history);
+  assert.equal(history.present, placed);
+  history = redoDocument(history);
+  assert.equal(history.present, rotated);
+  assert.equal(
+    exportPatternJson(parsePatternJson(exportPatternJson(rotated)).document),
+    exportPatternJson(rotated),
+  );
 });
 
 test("color selection and usage counts follow the pattern palette", () => {

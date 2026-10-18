@@ -25,6 +25,7 @@ export {
   RouteEstimationError,
   UnsupportedDocumentVersionError,
   UnsupportedTechniqueError,
+  UnsupportedTechniqueOperationError,
 } from "./errors.js";
 export {
   FULL_CROSS_TECHNIQUE_KEY,
@@ -69,11 +70,13 @@ export type {
   BackFabricSegment,
   FrontPrimitive,
   LinePrimitive,
+  PatternRotation,
   RouteSegment,
   StitchingRoute,
   StitchingRouteStep,
   StitchTechnique,
   TechniqueContext,
+  TechniqueRotationContext,
   TechniqueRouteOption,
   ValidationIssue,
   ValidationSeverity,

@@ -34,10 +34,11 @@ COC.2 explicitly authorized the visual editor ahead of the originally proposed p
 - Add the React/Vite application shell and accessible editor controls.
 - Implement layered Canvas 2D rendering, pan, zoom, fit, selection, pencil/erase/recolor, and bounded local undo/redo.
 - Add viewport culling, separate interaction overlay, optional symbols, keyboard shortcuts, high-DPI rendering, and drag interpolation.
+- Fit and center the document from actual workspace dimensions while preserving manual viewport changes; add engine-backed, undoable quarter-turn and half-turn rotation.
 - Add validated versioned JSON import/export while clearly labeling the application as local-only.
 - Add pure unit tests, 100,000-stitch render-planning coverage, production build verification, and browser interaction/visual QA.
 
-**Exit:** A user can create, edit, recolor, erase, undo/redo, export, and import a valid private local cross-stitch pattern through an inspected browser interface.
+**Exit:** A user can create, edit, recolor, erase, rotate, undo/redo, export, and import a valid private local cross-stitch pattern through an inspected browser interface, with reliable fit/centering across workspace resizes.
 
 ## Milestone 3 — private persistence vertical slice (recommended next; not started)
 

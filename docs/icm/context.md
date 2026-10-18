@@ -14,7 +14,7 @@ Cocolla is intended to be a multi-user embroidery and cross-stitch design applic
 ## Major parts
 
 - `packages/contracts` — persistence- and UI-independent versioned pattern document types and JSON Schema.
-- `packages/engine` — document validation, migrations, commands, stitch techniques, front geometry, and route/back-estimation interfaces.
+- `packages/engine` — document validation, migrations, stitch/document commands, technique-aware rotation, front geometry, and route/back-estimation interfaces.
 - `apps/web` — implemented React/Vite application shell, layered Canvas 2D editor, viewport/interaction core, local history, and JSON import/export.
 - `apps/api` — planned Fastify application boundary; not implemented.
 - `packages/db` — planned PostgreSQL persistence; not implemented.

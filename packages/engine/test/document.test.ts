@@ -87,6 +87,144 @@ test("command batches increment document revision once", () => {
   assert.equal(updated.stitches[1]?.colorId, red.id);
 });
 
+test("document rotation transforms full-cross geometry and swaps rectangular bounds", () => {
+  const base = makeDocument(4, 3);
+  const document = applyPatternCommands(base, {
+    baseRevision: 0,
+    commands: [
+      { type: "stitch.add", stitch: fullCross("top-left", 0, 0) },
+      { type: "stitch.add", stitch: fullCross("bottom-right", 3, 2, red.id) },
+      { type: "stitch.add", stitch: fullCross("middle", 1, 2) },
+    ],
+  });
+  const rotated = applyPatternCommand(document, {
+    type: "document.rotate",
+    rotation: "clockwise-90",
+  });
+
+  assert.deepEqual(rotated.bounds, { width: 3 * 1024, height: 4 * 1024 });
+  assert.deepEqual(
+    rotated.stitches.map((stitch) => stitch.geometry.anchor),
+    [
+      { x: 2 * 1024, y: 0 },
+      { x: 0, y: 3 * 1024 },
+      { x: 0, y: 1024 },
+    ],
+  );
+  assert.deepEqual(
+    rotated.stitches.map(({ id, layerId, colorId }) => ({ id, layerId, colorId })),
+    document.stitches.map(({ id, layerId, colorId }) => ({ id, layerId, colorId })),
+  );
+  assert.equal(rotated.metadata, document.metadata);
+  assert.equal(rotated.layers, document.layers);
+  assert.equal(rotated.colors, document.colors);
+  assert.equal(rotated.extensions, document.extensions);
+  assert.equal(rotated.revision, document.revision + 1);
+  assert.ok(rotated.stitches.every((stitch) => stitch.elementRevision === 1));
+  assert.equal(validatePatternDocument(rotated).valid, true);
+});
+
+test("counterclockwise and 180-degree rotations use deterministic coordinates", () => {
+  const document = applyPatternCommand(makeDocument(4, 3), {
+    type: "stitch.add",
+    stitch: fullCross("corner", 0, 0),
+  });
+  const counterclockwise = applyPatternCommand(document, {
+    type: "document.rotate",
+    rotation: "counterclockwise-90",
+  });
+  assert.deepEqual(counterclockwise.stitches[0]?.geometry.anchor, {
+    x: 0,
+    y: 3 * 1024,
+  });
+  assert.deepEqual(counterclockwise.bounds, { width: 3 * 1024, height: 4 * 1024 });
+
+  const halfTurn = applyPatternCommand(document, {
+    type: "document.rotate",
+    rotation: "180",
+  });
+  assert.deepEqual(halfTurn.stitches[0]?.geometry.anchor, {
+    x: 3 * 1024,
+    y: 2 * 1024,
+  });
+  assert.deepEqual(halfTurn.bounds, document.bounds);
+});
+
+test("four clockwise quarter turns restore geometry and remain serializable", () => {
+  const original = applyPatternCommands(makeDocument(7, 4), {
+    baseRevision: 0,
+    commands: [
+      { type: "stitch.add", stitch: fullCross("one", 1, 2) },
+      { type: "stitch.add", stitch: fullCross("two", 6, 0, red.id) },
+    ],
+  });
+  let rotated = original;
+  for (let turn = 0; turn < 4; turn += 1) {
+    rotated = applyPatternCommand(rotated, {
+      type: "document.rotate",
+      rotation: "clockwise-90",
+    });
+  }
+  assert.deepEqual(rotated.bounds, original.bounds);
+  assert.deepEqual(
+    rotated.stitches.map((stitch) => stitch.geometry),
+    original.stitches.map((stitch) => stitch.geometry),
+  );
+  assert.deepEqual(
+    deserializePatternDocument(serializePatternDocument(rotated)),
+    rotated,
+  );
+});
+
+test("rotation rejects unsupported technique payloads atomically", () => {
+  const unsupported: PatternDocument = {
+    ...makeDocument(4, 3),
+    stitches: [
+      {
+        ...fullCross("future", 1, 1),
+        technique: { key: "future-freeform", version: 7 },
+        geometry: {
+          anchor: { x: 1024, y: 1024 },
+          data: { orientation: "north", points: [1, 2, 3] },
+        },
+      },
+    ],
+  };
+  const before = serializePatternDocument(unsupported);
+  assert.throws(
+    () =>
+      applyPatternCommand(unsupported, {
+        type: "document.rotate",
+        rotation: "clockwise-90",
+      }),
+    UnsupportedTechniqueError,
+  );
+  assert.equal(serializePatternDocument(unsupported), before);
+});
+
+test("document transformations cannot be mixed into a stitch command batch", () => {
+  const document = makeDocument();
+  assert.throws(
+    () =>
+      applyPatternCommands(document, {
+        baseRevision: document.revision,
+        commands: [
+          { type: "document.rotate", rotation: "180" },
+          { type: "stitch.add", stitch: fullCross("mixed", 0, 0) },
+        ],
+      }),
+    { code: "DOCUMENT_COMMAND_MUST_BE_EXCLUSIVE" },
+  );
+  assert.throws(
+    () =>
+      applyPatternCommand(document, {
+        type: "document.rotate",
+        rotation: "invalid" as never,
+      }),
+    { code: "INVALID_ROTATION" },
+  );
+});
+
 test("invalid commands fail explicitly", () => {
   const document = makeDocument();
   assert.throws(

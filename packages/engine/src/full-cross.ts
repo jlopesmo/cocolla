@@ -156,4 +156,21 @@ export const fullCrossTechnique: StitchTechnique<JsonObject> = {
       0,
     );
   },
+
+  rotateGeometry(element, context) {
+    const unit = context.document.coordinateSystem.unitsPerFabricCell;
+    const { width, height } = context.document.bounds;
+    const { x, y } = element.geometry.anchor;
+    const anchor = (() => {
+      switch (context.rotation) {
+        case "clockwise-90":
+          return point(height - y - unit, x);
+        case "counterclockwise-90":
+          return point(y, width - x - unit);
+        case "180":
+          return point(width - x - unit, height - y - unit);
+      }
+    })();
+    return { anchor, data: element.geometry.data };
+  },
 };

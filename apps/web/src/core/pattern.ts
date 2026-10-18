@@ -1,6 +1,7 @@
 import {
   DEFAULT_UNITS_PER_FABRIC_CELL,
   InvalidDocumentError,
+  applyPatternCommand,
   applyPatternCommands,
   assertValidPatternDocument,
   createPatternDocument,
@@ -10,6 +11,7 @@ import {
   type PatternColorV1,
   type PatternCommand,
   type PatternDocument,
+  type PatternRotation,
   type StitchElementV1,
 } from "../../../../packages/engine/src/index.js";
 
@@ -233,6 +235,15 @@ export const renamePattern = (
   assertValidPatternDocument(renamed);
   return renamed;
 };
+
+export const rotatePattern = (
+  document: PatternDocument,
+  rotation: PatternRotation,
+): PatternDocument =>
+  applyPatternCommand(document, {
+    type: "document.rotate",
+    rotation,
+  });
 
 export const parsePatternJson = (serialized: string): ParsedPattern => {
   const document = deserializePatternDocument(serialized);
