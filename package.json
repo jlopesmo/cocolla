@@ -1,0 +1,20 @@
+{
+  "name": "cocolla",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.11 <25"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit --pretty false",
+    "test": "npm run build && node --test \"dist/packages/engine/test/*.test.js\"",
+    "benchmark": "npm run build && node dist/packages/engine/benchmarks/pattern.benchmark.js",
+    "check": "npm run typecheck && npm test && npm run benchmark"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.9",
+    "typescript": "5.9.3"
+  }
+}
