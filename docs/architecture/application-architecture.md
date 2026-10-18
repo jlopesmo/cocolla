@@ -21,7 +21,7 @@ This is a good fit for a private, self-hosted design application because it mini
 ### Verified facts at approval and current implementation note
 
 - At the time of the audit, the repository contained governance and ICM documentation only.
-- The architecture is now approved. Milestone 1 implements only the document contract and stitch engine; UI, backend, database, and deployment remain absent.
+- The architecture is now approved. COC.1 Milestone 1 implemented the document contract and stitch engine, and COC.2 implemented the local visual editor. Backend, database, authentication, and deployment remain absent.
 - `repoinspire.md` contains one canvas-UX inspiration candidate and explicitly records no adoption.
 - The target Synology DS923+ has an AMD Ryzen R1600, 4 GB base RAM, and is listed by Synology as compatible with Container Manager.
 
@@ -359,8 +359,8 @@ The project owner approved items 1–10 below on 2026-10-18, subject to preservi
 8. Adopt application authorization plus forced PostgreSQL RLS as defense in depth.
 9. Adopt filesystem-backed private assets and require coordinated database/file backups.
 10. Adopt AI as disabled-by-default proposal adapters outside the core.
-11. Provisional scale/performance targets remain subject to representative client and target-device testing. Milestone 1 established 10k/100k engine baselines but did not validate browser rendering or Synology operation.
-12. Milestone 1 selected npm, TypeScript 5.9.3, Node 24 LTS types/runtime, and the built-in Node test runner. Web, API, SQL, authentication, and deployment tool versions remain unselected until their authorized milestones.
+11. Provisional scale/performance targets remain subject to representative client and target-device testing. Milestone 1 established 10k/100k engine baselines; COC.2 added a 100k-element viewport-culling baseline and browser interaction QA, but Synology behavior remains untested.
+12. Milestone 1 selected npm, TypeScript 5.9.3, Node 24 LTS types/runtime, and the built-in Node test runner. COC.2 selected React 19.3.1, Vite 8.3.4, `@vitejs/plugin-react` 6.1.2, and layered Canvas 2D. API, SQL, authentication, and deployment tool versions remain unselected until their authorized milestones.
 
 ## Primary evaluation sources
 

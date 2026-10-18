@@ -12,7 +12,7 @@ This file is the canonical project-local record of repository-reference priority
 
 This Markdown register follows the master catalog’s [schema](https://github.com/jlopesmo/repoinspire/blob/main/schema/catalog.schema.json) vocabulary and [project template](https://github.com/jlopesmo/repoinspire/blob/main/templates/repoinspire.md) authoring contract. The master catalog is authoritative for shared repository identity/research; this project file is authoritative for project decisions once published. Proposed priority is separate from user-decided priority.
 
-Ranks are proposed project evaluation order, not GitHub Trending rank, approved work order or deadlines. `accepted_reference` means approved or retained as a reference classification; adoption status separately records whether its use is candidate, planned, active, rejected, or retired. The original imported reference remains `candidate`. The COC.1 architecture is approved: TypeScript and Node.js are actively used by the verified engine milestone, while React, Fastify, PostgreSQL, and Compose are planned for later authorized milestones.
+Ranks are proposed project evaluation order, not GitHub Trending rank, approved work order or deadlines. `accepted_reference` means approved or retained as a reference classification; adoption status separately records whether its use is candidate, planned, active, rejected, or retired. The original imported reference remains `candidate`. TypeScript, Node.js, React, and Vite are actively used by verified COC.1/COC.2 work; Fastify, PostgreSQL, and Compose remain planned for later authorized milestones.
 
 **Project naming history:** `stitching` → `cocolla`. This is project-label history, not a claim that a GitHub repository was renamed.
 
@@ -73,28 +73,57 @@ Order is an assistant-proposed evaluation sequence. The user-decided priority is
 - **Repository URL:** https://github.com/facebook/react
 - **Reference classification:** `accepted_reference`
 - **Added:** 2026-10-18
-- **Last reviewed:** 2026-10-18 (official documentation/license review; no compatibility test)
-- **Why relevant:** Proposed component framework for the Cocolla web application shell and editor controls
-- **Adoption status:** `planned`
+- **Last reviewed:** 2026-10-18 (official documentation/license review and verified COC.2 build/browser test)
+- **Why relevant:** Component framework for the Cocolla web application shell and editor controls
+- **Adoption status:** `actively_using`
 - **Status decision date:** 2026-10-18
-- **Status decision and reason:** approved as the intended web UI framework; UI implementation is not authorized or started
-- **Decision evidence:** `docs/architecture/application-architecture.md`; COC.1 architecture approval on 2026-10-18
+- **Status decision and reason:** React 19.3.1 is implemented for the COC.2 application shell and editor controls
+- **Decision evidence:** `package.json`; `package-lock.json`; `apps/web`; `docs/decisions/0002-visual-pattern-editor.md`; passing production build and browser QA
 - **Proposed use type:** `dependency`
 - **Selected use type:** `dependency`
 - **Proposed evaluation rank:** 2
 - **Proposed evaluation priority:** `foundation_candidate`
 - **Proposal rationale:** Suitable for state-driven application UI while the dense stitch surface remains outside a component-per-stitch DOM model
-- **User-decided project priority:** approved for the future web milestone; not yet authorized for implementation
-- **Priority decision date and evidence:** 2026-10-18; COC.1 architecture approval
+- **User-decided project priority:** approved and implemented for COC.2
+- **Priority decision date and evidence:** 2026-10-18; COC.2 implementation authorization
 - **Reported license:** MIT
 - **License review status:** `documentation_reviewed`; checked date: 2026-10-18
-- **License evidence and notes:** https://github.com/facebook/react/blob/main/LICENSE; exact package versions and bundled notices require review before adoption
-- **Constraints / incompatibilities:** React must not become the stitch-engine or per-stitch scene model; build and state tooling remain undecided
+- **License evidence and notes:** https://github.com/facebook/react/blob/main/LICENSE; React and React DOM 19.3.1 are pinned in `package-lock.json`
+- **Constraints / incompatibilities:** React must not become the stitch-engine or per-stitch scene model; Canvas rendering remains imperative and isolated from per-stitch React components
 - **Research evidence:** https://react.dev/learn/typescript; https://react.dev/learn/escape-hatches; https://github.com/facebook/react/blob/main/README.md
-- **Possible later use notes:** web application shell, inspectors, tools, and accessible controls
-- **Adoption scope:** future React application shell and editor controls; no current installation
-- **Implementation or usage references:** none recorded
+- **Possible later use notes:** expand the current shell with persistence, catalogs, progress, and other approved panels
+- **Adoption scope:** COC.2 application shell, inspectors, dialogs, tools, and accessible controls
+- **Implementation or usage references:** `package.json`; `package-lock.json`; `apps/web/src`
 - **Upstream aliases / fork relationship:** the canonical repository URL currently uses `facebook/react`; no fork relationship applies
+
+### vitejs/vite and vitejs/vite-plugin-react
+
+- **Repository ID:** `vitejs/vite`; `vitejs/vite-plugin-react`
+- **Repository URL:** https://github.com/vitejs/vite; https://github.com/vitejs/vite-plugin-react
+- **Reference classification:** `accepted_reference`
+- **Added:** 2026-10-18
+- **Last reviewed:** 2026-10-18 (official package/repository/license review and verified COC.2 build)
+- **Why relevant:** Development server, production bundler, and React Fast Refresh integration for the local web editor
+- **Adoption status:** `actively_using`
+- **Status decision date:** 2026-10-18
+- **Status decision and reason:** Vite 8.3.4 and `@vitejs/plugin-react` 6.1.2 were explicitly authorized and implemented for COC.2
+- **Decision evidence:** `package.json`; `package-lock.json`; `apps/web/vite.config.ts`; passing `npm run dev` and `npm run build`
+- **Proposed use type:** `dependency`
+- **Selected use type:** `dependency`
+- **Proposed evaluation rank:** 3
+- **Proposed evaluation priority:** `coc2_tooling`
+- **Proposal rationale:** Provides a standard minimal React/TypeScript development and static production build workflow without coupling application code to a server framework
+- **User-decided project priority:** approved and implemented for COC.2
+- **Priority decision date and evidence:** 2026-10-18; COC.2 implementation authorization
+- **Reported license:** MIT for Vite and `@vitejs/plugin-react`
+- **License review status:** `documentation_reviewed`; checked date: 2026-10-18
+- **License evidence and notes:** https://github.com/vitejs/vite/blob/main/LICENSE; https://github.com/vitejs/vite-plugin-react/blob/main/LICENSE; exact versions are pinned in `package-lock.json`
+- **Constraints / incompatibilities:** Vite is development/build tooling only; it does not define the production API or Synology deployment architecture
+- **Research evidence:** https://vite.dev/guide/; https://github.com/vitejs/vite/blob/main/packages/vite/package.json; https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react
+- **Possible later use notes:** retain for the SPA build unless an explicit architecture decision replaces it
+- **Adoption scope:** local development server, React transformation/Fast Refresh, and production static bundle
+- **Implementation or usage references:** `package.json`; `package-lock.json`; `apps/web/vite.config.ts`; `apps/web/index.html`
+- **Upstream aliases / fork relationship:** Vite and its official React plugin are separate canonical repositories in the same upstream organization
 
 ### microsoft/TypeScript
 
@@ -106,23 +135,23 @@ Order is an assistant-proposed evaluation sequence. The user-decided priority is
 - **Why relevant:** Proposed shared implementation language for the web, API, contracts, and UI-independent stitch engine
 - **Adoption status:** `actively_using`
 - **Status decision date:** 2026-10-18
-- **Status decision and reason:** approved and implemented for the versioned document contract and stitch engine
-- **Decision evidence:** `package.json`; `package-lock.json`; `tsconfig.base.json`; `packages/contracts`; `packages/engine`
+- **Status decision and reason:** approved and implemented for the versioned document contract, stitch engine, and COC.2 editor
+- **Decision evidence:** `package.json`; `package-lock.json`; `tsconfig.base.json`; `packages/contracts`; `packages/engine`; `apps/web`
 - **Proposed use type:** `dependency`
 - **Selected use type:** `dependency`
 - **Proposed evaluation rank:** 3
 - **Proposed evaluation priority:** `foundation_candidate`
 - **Proposal rationale:** Enables shared domain vocabulary and strict boundary checking across browser and server without coupling the engine to either
-- **User-decided project priority:** approved and implemented for Milestone 1
-- **Priority decision date and evidence:** 2026-10-18; COC.1 implementation authorization and verified engine build
+- **User-decided project priority:** approved and implemented for COC.1 and COC.2
+- **Priority decision date and evidence:** 2026-10-18; COC.1/COC.2 authorization and verified builds
 - **Reported license:** Apache-2.0
 - **License review status:** `documentation_reviewed`; checked date: 2026-10-18
 - **License evidence and notes:** https://github.com/microsoft/TypeScript/blob/main/LICENSE.txt; TypeScript 5.9.3 is pinned in `package-lock.json`
 - **Constraints / incompatibilities:** Types do not replace runtime validation; compiler settings and emitted module format require an explicit decision
 - **Research evidence:** https://www.typescriptlang.org/docs/; https://react.dev/learn/typescript
-- **Possible later use notes:** shared contracts and deterministic engine packages
-- **Adoption scope:** strict TypeScript 5.9.3 for Milestone 1 contracts, engine, tests, and benchmarks
-- **Implementation or usage references:** `package.json`; `package-lock.json`; `tsconfig.json`; `tsconfig.base.json`; `packages/contracts/src`; `packages/engine/src`
+- **Possible later use notes:** shared contracts, deterministic engine packages, and application modules
+- **Adoption scope:** strict TypeScript 5.9.3 for contracts, engine, editor, tests, and benchmarks
+- **Implementation or usage references:** `package.json`; `package-lock.json`; `tsconfig.json`; `tsconfig.base.json`; `packages/contracts/src`; `packages/engine/src`; `apps/web`
 - **Upstream aliases / fork relationship:** no verified aliases or fork relationship recorded; unknown is not proof of absence
 
 ### fastify/fastify
@@ -248,26 +277,26 @@ Order is an assistant-proposed evaluation sequence. The user-decided priority is
 - **Reference classification:** `accepted_reference`
 - **Added:** 2026-10-18
 - **Last reviewed:** 2026-10-18 (package metadata, repository, and license review)
-- **Why relevant:** Source repository for the `@types/node` development dependency used to strictly typecheck Node-based tests and benchmarks
+- **Why relevant:** Source repository for the `@types/node`, `@types/react`, and `@types/react-dom` development dependencies used by strict TypeScript checks
 - **Adoption status:** `actively_using`
 - **Status decision date:** 2026-10-18
-- **Status decision and reason:** approved as the minimal Node type declaration dependency for Milestone 1
+- **Status decision and reason:** approved for Node declarations in COC.1 and React/DOM declarations in COC.2
 - **Decision evidence:** `package.json`; `package-lock.json`; passing strict typecheck
 - **Proposed use type:** `dependency`
 - **Selected use type:** `dependency`
 - **Proposed evaluation rank:** 8
 - **Proposed evaluation priority:** `milestone_1_tooling`
 - **Proposal rationale:** Node's built-in test and performance modules require declarations under strict TypeScript
-- **User-decided project priority:** approved for Milestone 1 tooling
-- **Priority decision date and evidence:** 2026-10-18; COC.1 implementation authorization and `package-lock.json`
-- **Reported license:** MIT for `@types/node`
+- **User-decided project priority:** approved for COC.1 and COC.2 tooling
+- **Priority decision date and evidence:** 2026-10-18; COC.1/COC.2 implementation authorization and `package-lock.json`
+- **Reported license:** MIT for `@types/node`, `@types/react`, and `@types/react-dom`
 - **License review status:** `documentation_reviewed`; checked date: 2026-10-18
-- **License evidence and notes:** https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/LICENSE; installed package metadata reports MIT; `@types/node` 24.10.9 depends on `undici-types` 7.16.0 (MIT)
+- **License evidence and notes:** https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/LICENSE; installed package metadata reports MIT; pinned versions are `@types/node` 24.10.9 and React/DOM types 19.3.0
 - **Constraints / incompatibilities:** Development types must track the selected Node LTS line and are not an engine runtime dependency
-- **Research evidence:** https://www.npmjs.com/package/%40types/node; https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node
+- **Research evidence:** https://www.npmjs.com/package/%40types/node; https://www.npmjs.com/package/%40types/react; https://www.npmjs.com/package/%40types/react-dom; https://github.com/DefinitelyTyped/DefinitelyTyped
 - **Possible later use notes:** update only with a reviewed Node/toolchain upgrade
-- **Adoption scope:** strict typing for Milestone 1 Node test and benchmark code
-- **Implementation or usage references:** `package.json`; `package-lock.json`; `packages/engine/test`; `packages/engine/benchmarks`
+- **Adoption scope:** strict typing for Node tests/benchmarks and the React browser application
+- **Implementation or usage references:** `package.json`; `package-lock.json`; `packages/engine/test`; `packages/engine/benchmarks`; `apps/web`
 - **Upstream aliases / fork relationship:** package content is maintained under `DefinitelyTyped/DefinitelyTyped`; no fork relationship recorded
 
 ## Decision history
@@ -276,6 +305,7 @@ Order is an assistant-proposed evaluation sequence. The user-decided priority is
 - 2026-10-18 — `facebook/react`, `microsoft/TypeScript`, `fastify/fastify`, `nodejs/node`, `postgres/postgres`, and `docker/compose`: entered bounded COC.1 architecture evaluation. All remain unapproved candidates; no installation, selected version, or implementation use is authorized
 - 2026-10-18 — COC.1 architecture approved: React, Fastify, PostgreSQL, and Compose moved to `planned`; TypeScript 5.9.3 and Node 24 LTS moved to `actively_using` with Milestone 1 evidence
 - 2026-10-18 — `DefinitelyTyped/DefinitelyTyped`: accepted and marked `actively_using` for `@types/node` 24.10.9 in Milestone 1 tooling; no engine runtime dependency added
+- 2026-10-18 — COC.2 authorized and implemented React 19.3.1, React DOM 19.3.1, Vite 8.3.4, `@vitejs/plugin-react` 6.1.2, and React/DOM type declarations. React moved from `planned` to `actively_using`; the Vite repositories were accepted as `actively_using` with build and browser evidence
 
 ## Maintenance and identity
 

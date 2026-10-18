@@ -5,6 +5,8 @@
     "outDir": "dist"
   },
   "include": [
-    "packages/**/*.ts"
+    "packages/**/*.ts",
+    "apps/web/src/core/**/*.ts",
+    "apps/web/test/**/*.ts"
   ]
 }
