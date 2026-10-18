@@ -17,9 +17,7 @@ Intent, Context, and Memory (ICM) provides the durable project information that 
 
 ## Current state
 
-The GitHub repository initially contained reference/governance documentation. On 2026-10-18, nexOS generated the local project scaffold, Git configuration, agent instructions, and ICM files.
-
-Application implementation, tests, and deployment have not yet been established.
+The GitHub repository initially contained reference/governance documentation. On 2026-10-18, nexOS generated the local project scaffold, Git configuration, agent instructions, and ICM files. COC.1 Milestone 1 subsequently established the versioned pattern contract and UI-independent stitch-engine kernel with automated tests and benchmarks. Application UI, API, persistence, and deployment remain unimplemented; see [current-state.md](current-state.md) for verified detail.
 
 ## Documentation discipline
 

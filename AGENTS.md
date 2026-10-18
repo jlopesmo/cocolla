@@ -1,6 +1,6 @@
 ﻿# Cocolla — Agent Entry
 
-Cocolla is a multi-user embroidery and cross-stitch design application supporting pattern creation, editing, image-to-pattern conversion, thread management, fabric visualization, exports, and stitch progress tracking.
+Cocolla is intended to become a multi-user embroidery and cross-stitch design application supporting pattern creation, editing, image-to-pattern conversion, thread management, fabric visualization, exports, and stitch progress tracking. The currently implemented scope is recorded in the ICM current-state document.
 
 This file is the entry point for coding agents operating on Cocolla. It routes agents to authoritative project documentation rather than duplicating decisions.
 

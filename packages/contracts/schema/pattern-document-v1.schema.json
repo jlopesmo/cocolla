@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cocolla.local/schema/pattern-document-v1.schema.json",
+  "title": "Cocolla Pattern Document v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "version",
+    "id",
+    "revision",
+    "metadata",
+    "coordinateSystem",
+    "bounds",
+    "layers",
+    "colors",
+    "stitches",
+    "extensions"
+  ],
+  "properties": {
+    "format": { "const": "cocolla.pattern" },
+    "version": { "const": 1 },
+    "id": { "$ref": "#/$defs/identifier" },
+    "revision": { "$ref": "#/$defs/nonNegativeInteger" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "coordinateSystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "unitsPerFabricCell"],
+      "properties": {
+        "kind": { "const": "integer-design-units" },
+        "unitsPerFabricCell": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "$ref": "#/$defs/positiveInteger" },
+        "height": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/layer" }
+    },
+    "colors": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/color" }
+    },
+    "stitches": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/stitch" }
+    },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "safeInteger": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "nonNegativeInteger": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "positiveInteger": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "$ref": "#/$defs/safeInteger" },
+        "y": { "$ref": "#/$defs/safeInteger" }
+      }
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "order"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "name": { "type": "string", "minLength": 1 },
+        "order": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "color": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "rgb", "symbol", "threadProductId"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "name": { "type": "string", "minLength": 1 },
+        "rgb": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "symbol": { "type": "string", "minLength": 1, "maxLength": 8 },
+        "threadProductId": {
+          "oneOf": [
+            { "$ref": "#/$defs/identifier" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "stitch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "technique",
+        "layerId",
+        "colorId",
+        "geometry",
+        "elementRevision"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "technique": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["key", "version"],
+          "properties": {
+            "key": { "type": "string", "minLength": 1 },
+            "version": { "$ref": "#/$defs/positiveInteger" }
+          }
+        },
+        "layerId": { "$ref": "#/$defs/identifier" },
+        "colorId": { "$ref": "#/$defs/identifier" },
+        "geometry": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["anchor", "data"],
+          "properties": {
+            "anchor": { "$ref": "#/$defs/point" },
+            "data": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "elementRevision": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    }
+  }
+}
