@@ -277,6 +277,24 @@ kbd {
 .technique-card small { color: var(--muted); font-size: 9px; margin-top: 2px; }
 .symbol-field { margin-top: 12px; }
 .symbol-field input { max-width: 72px; min-height: 32px; text-align: center; }
+.symbol-picker { display: grid; gap: 4px; grid-template-columns: repeat(8, 1fr); margin-top: 8px; }
+.symbol-picker button {
+  align-items: center;
+  aspect-ratio: 1;
+  background: #fff;
+  border: 1px solid #d5dad4;
+  border-radius: 5px;
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  font-size: 12px;
+  justify-content: center;
+  min-width: 0;
+  padding: 0;
+}
+.symbol-picker button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.symbol-picker button.selected { background: #e5f0ef; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.symbol-picker button:disabled:not(.selected) { cursor: not-allowed; opacity: 0.24; }
 .color-dot { border: 1px solid rgba(33, 42, 37, 0.18); border-radius: 50%; flex: none; height: 13px; width: 13px; }
 .mini-cross { align-items: center; background: #e6eeee; border-radius: 8px; color: var(--accent); display: flex; font-family: Georgia, serif; font-size: 25px; height: 36px; justify-content: center; width: 36px; }
 

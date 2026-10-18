@@ -3,6 +3,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { PatternDocument } from "../../../../packages/engine/src/index.js";
 import { createRenderPlan } from "../core/render-plan.js";
 import {
+  curatedChartSymbol,
+  type ChartSymbolPrimitive,
+} from "../core/chart-symbols.js";
+import {
   cellTintAlpha,
   colorDisplayOpacity,
   displayModeShowsColor,
@@ -23,6 +27,7 @@ import {
   type Viewport,
   type ViewportSize,
   visibleCellBounds,
+  wheelZoomFactor,
 } from "../core/viewport.js";
 import {
   pointerAction,
@@ -58,10 +63,72 @@ const canvasPixelRatio = (): number =>
 
 const eventPoint = (
   canvas: HTMLCanvasElement,
-  event: React.PointerEvent<HTMLCanvasElement> | React.WheelEvent<HTMLCanvasElement>,
+  event: { readonly clientX: number; readonly clientY: number },
 ): ScreenPoint => {
   const rectangle = canvas.getBoundingClientRect();
   return { x: event.clientX - rectangle.left, y: event.clientY - rectangle.top };
+};
+
+const traceChartSymbolPrimitive = (
+  context: CanvasRenderingContext2D,
+  primitive: ChartSymbolPrimitive,
+  center: ScreenPoint,
+  size: number,
+): void => {
+  context.beginPath();
+  if (primitive.kind === "circle") {
+    context.arc(center.x, center.y, primitive.radius * size, 0, Math.PI * 2);
+    return;
+  }
+  const first = primitive.points[0];
+  if (first === undefined) {
+    return;
+  }
+  context.moveTo(center.x + first.x * size, center.y + first.y * size);
+  for (const point of primitive.points.slice(1)) {
+    context.lineTo(center.x + point.x * size, center.y + point.y * size);
+  }
+  if (primitive.closed) {
+    context.closePath();
+  }
+};
+
+const drawCuratedChartSymbol = (
+  context: CanvasRenderingContext2D,
+  symbol: string,
+  center: ScreenPoint,
+  size: number,
+  foreground: string,
+  contrastOutline: string,
+): boolean => {
+  const definition = curatedChartSymbol(symbol);
+  if (definition === undefined) {
+    return false;
+  }
+  context.save();
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  for (const primitive of definition.primitives) {
+    traceChartSymbolPrimitive(context, primitive, center, size);
+    if (primitive.filled) {
+      context.fillStyle = foreground;
+      context.fill();
+      context.strokeStyle = contrastOutline;
+      context.lineWidth = Math.max(1.2, size * 0.07);
+      context.stroke();
+      continue;
+    }
+    const heavy = primitive.kind === "path" && primitive.heavy === true;
+    context.strokeStyle = contrastOutline;
+    context.lineWidth = Math.max(2, size * (heavy ? 0.24 : 0.17));
+    context.stroke();
+    traceChartSymbolPrimitive(context, primitive, center, size);
+    context.strokeStyle = foreground;
+    context.lineWidth = Math.max(1.2, size * (heavy ? 0.14 : 0.08));
+    context.stroke();
+  }
+  context.restore();
+  return true;
 };
 
 const drawCanvas = (
@@ -212,15 +279,26 @@ const drawCanvas = (
         continue;
       }
       const symbol = colors.get(stitch.colorId)?.symbol ?? "?";
-      context.lineWidth = Math.max(1.5, fontSize * 0.2);
-      context.strokeStyle = appearance.displayMode === "symbol"
+      const contrastOutline = appearance.displayMode === "symbol"
         ? "rgba(255,255,255,0.95)"
         : "rgba(38,50,56,0.72)";
-      context.fillStyle = appearance.displayMode === "symbol"
+      const foreground = appearance.displayMode === "symbol"
         ? "#263238"
         : "rgba(255,255,255,0.96)";
-      context.strokeText(symbol, center.x, center.y);
-      context.fillText(symbol, center.x, center.y);
+      if (!drawCuratedChartSymbol(
+        context,
+        symbol,
+        center,
+        fontSize,
+        foreground,
+        contrastOutline,
+      )) {
+        context.lineWidth = Math.max(1.5, fontSize * 0.2);
+        context.strokeStyle = contrastOutline;
+        context.fillStyle = foreground;
+        context.strokeText(symbol, center.x, center.y);
+        context.fillText(symbol, center.x, center.y);
+      }
     }
     context.globalAlpha = 1;
   }
@@ -290,8 +368,12 @@ export const PatternCanvas = ({
   const baseCanvasRef = useRef<HTMLCanvasElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
   const pointerRef = useRef<ActivePointer | null>(null);
+  const viewportRef = useRef(viewport);
+  const viewportChangeRef = useRef(onViewportChange);
   const [size, setSize] = useState<ViewportSize>({ width: 1, height: 1 });
   const [hoverCell, setHoverCell] = useState<CellPoint | null>(null);
+  viewportRef.current = viewport;
+  viewportChangeRef.current = onViewportChange;
 
   useLayoutEffect(() => {
     const canvas = overlayCanvasRef.current;
@@ -349,6 +431,28 @@ export const PatternCanvas = ({
     });
     return () => cancelAnimationFrame(frame);
   }, [document, hoverCell, selectedCell, size, viewport]);
+
+  useEffect(() => {
+    const canvas = overlayCanvasRef.current;
+    if (canvas === null) {
+      return;
+    }
+    const handleWheel = (event: WheelEvent): void => {
+      event.preventDefault();
+      const delta = event.deltaY === 0 ? event.deltaX : event.deltaY;
+      const factor = wheelZoomFactor(delta, event.deltaMode);
+      const current = viewportRef.current;
+      const next = zoomViewportAt(
+        current,
+        current.zoom * factor,
+        eventPoint(canvas, event),
+      );
+      viewportRef.current = next;
+      viewportChangeRef.current(next);
+    };
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
+    return () => canvas.removeEventListener("wheel", handleWheel);
+  }, []);
 
   const setHovered = (cell: CellPoint | null): void => {
     setHoverCell(cell);
@@ -418,24 +522,6 @@ export const PatternCanvas = ({
     }
   };
 
-  const handleWheel = (event: React.WheelEvent<HTMLCanvasElement>): void => {
-    const canvas = overlayCanvasRef.current;
-    if (canvas === null) {
-      return;
-    }
-    event.preventDefault();
-    if (event.ctrlKey || event.metaKey) {
-      const factor = Math.exp(-event.deltaY * 0.002);
-      onViewportChange(
-        zoomViewportAt(viewport, viewport.zoom * factor, eventPoint(canvas, event)),
-      );
-    } else {
-      onViewportChange(
-        panViewport(viewport, { x: -event.deltaX, y: -event.deltaY }),
-      );
-    }
-  };
-
   return (
     <div className={`canvas-stack tool-${tool}`}>
       <canvas aria-hidden="true" className="pattern-canvas base" ref={baseCanvasRef} />
@@ -451,7 +537,6 @@ export const PatternCanvas = ({
         onPointerLeave={() => setHovered(null)}
         onPointerMove={handlePointerMove}
         onPointerUp={finishPointer}
-        onWheel={handleWheel}
         ref={overlayCanvasRef}
         tabIndex={0}
       />

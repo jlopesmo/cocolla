@@ -8,8 +8,11 @@ import {
 } from "../../../../packages/engine/src/index.js";
 
 import type { ImageConversionResult, RgbColor } from "./image-conversion.js";
+import { CURATED_CHART_SYMBOLS } from "./chart-symbols.js";
 
-export const IMAGE_IMPORT_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
+export const IMAGE_IMPORT_SYMBOLS = CURATED_CHART_SYMBOLS.map(
+  (definition) => definition.value,
+);
 
 const hexadecimal = (value: number): string =>
   Math.round(value).toString(16).padStart(2, "0").toUpperCase();

@@ -6,6 +6,7 @@ import {
   fitDocumentViewport,
   screenToCell,
   viewportForWorkspace,
+  wheelZoomFactor,
   zoomViewportAt,
   type Viewport,
 } from "../src/core/viewport.js";
@@ -30,6 +31,28 @@ test("zooming around a pointer keeps its document location fixed", () => {
   const before = screenToCell(anchor, viewport);
   const zoomed = zoomViewportAt(viewport, 3.25, anchor);
   assert.deepEqual(screenToCell(anchor, zoomed), before);
+});
+
+test("wheel deltas zoom smoothly toward the pointer within viewport limits", () => {
+  const viewport: Viewport = { offsetX: 40, offsetY: 30, zoom: 1 };
+  const anchor = { x: 310, y: 220 };
+  const before = screenToCell(anchor, viewport);
+  const zoomedIn = zoomViewportAt(
+    viewport,
+    viewport.zoom * wheelZoomFactor(-60, 0),
+    anchor,
+  );
+  const zoomedOut = zoomViewportAt(
+    viewport,
+    viewport.zoom * wheelZoomFactor(3, 1),
+    anchor,
+  );
+  assert.ok(zoomedIn.zoom > viewport.zoom);
+  assert.ok(zoomedOut.zoom < viewport.zoom);
+  assert.deepEqual(screenToCell(anchor, zoomedIn), before);
+  assert.deepEqual(screenToCell(anchor, zoomedOut), before);
+  assert.equal(zoomViewportAt(viewport, 100, anchor).zoom, 8);
+  assert.equal(zoomViewportAt(viewport, 0, anchor).zoom, 0.01);
 });
 
 test("fit viewport centers the full document within available space", () => {

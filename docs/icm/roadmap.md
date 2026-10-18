@@ -10,16 +10,17 @@
 
 ## Implemented on feature branch — pending review
 
-- COC.4.2 — bounded local PNG/JPEG/WebP conversion into native editable full-cross patterns on `feat/coc4-image-import`.
+- COC.4.2 — bounded local PNG/JPEG/WebP conversion into native editable full-cross patterns, direct pointer-anchored wheel zoom, and an expanded vector-backed chart-symbol library on `feat/coc4-image-import`.
 
 ## Next — requires separate authorization
 
 - Private persistence vertical slice with Fastify, PostgreSQL, authentication, ownership enforcement, RLS, migrations, and cross-user isolation tests. This was previously numbered Milestone 2 but was explicitly deferred behind the authorized COC.2 editor.
 - The bounded implementation sequence and remaining dependency-selection gates are recorded in `docs/architecture/coc3-private-persistence-plan.md`; implementation requires separate authorization.
+- COC.4.3 thread catalogs and color matching — verify and approve a DMC source/license, implement a catalog provider, browsing/search, versioned approximate matching, user overrides, and cross-version tests. The provider-neutral contracts exist, but no DMC catalog data is approved or bundled.
 
 ## Later
 
-- Palettes and optional physical thread mappings.
+- Additional licensed or user-supplied palettes and physical thread catalogs beyond the first approved provider.
 - Stitching routes and front/estimated-back views beyond the initial engine interfaces.
 - Per-user progress, exports, imports, and Synology release hardening.
 - Optional AI adapters only after a separate decision.

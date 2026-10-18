@@ -28,6 +28,7 @@ import {
   selectImageImportReplacement,
 } from "../src/core/image-pattern.js";
 import { acceptCurrentConversionResult } from "../src/core/image-worker-contract.js";
+import { CURATED_CHART_SYMBOLS } from "../src/core/chart-symbols.js";
 import {
   drawFullCrossCells,
   exportPatternJson,
@@ -189,6 +190,10 @@ test("native pattern generation uses stable ids, unique symbols, and valid geome
     { x: 0, y: 0 }, { x: 1024, y: 0 }, { x: 1024, y: 1024 },
   ]);
   assert.equal(new Set(document.colors.map((color) => color.symbol)).size, 2);
+  assert.deepEqual(
+    document.colors.map((color) => color.symbol),
+    CURATED_CHART_SYMBOLS.slice(0, 2).map((definition) => definition.value),
+  );
   const serialized = exportPatternJson(document);
   assert.equal(serializePatternDocument(deserializePatternDocument(serialized)), serialized);
 });
