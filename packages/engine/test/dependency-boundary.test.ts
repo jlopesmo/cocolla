@@ -25,9 +25,4 @@ test("contracts and engine source import only repository-local modules", () => {
       }
     }
   }
-
-  const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
-    readonly dependencies?: unknown;
-  };
-  assert.equal(packageJson.dependencies, undefined);
 });

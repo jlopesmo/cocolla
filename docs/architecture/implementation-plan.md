@@ -1,6 +1,6 @@
 # Cocolla concise implementation plan
 
-**Status:** Approved; Milestone 1 completed on 2026-10-18; later milestones not authorized
+**Status:** Approved direction; COC.1 and COC.2 completed on 2026-10-18; later milestones not authorized
 **Prepared:** 2026-10-18
 
 Each milestone must be demonstrable, independently testable, and leave the repository in a usable state. A milestone does not begin merely because it appears here.
@@ -27,7 +27,20 @@ Implemented and verified on `feat/coc1-engine-kernel`.
 
 **Exit:** A blank pattern can be created, edited through commands, validated, serialized, restored identically, and benchmarked entirely in the pure engine. Dependency-boundary tests prove the engine imports no application infrastructure.
 
-## Milestone 2 — private persistence vertical slice (recommended next; not started)
+## Milestone 2 — visual pattern editor (complete as COC.2)
+
+COC.2 explicitly authorized the visual editor ahead of the originally proposed persistence slice.
+
+- Add the React/Vite application shell and accessible editor controls.
+- Implement layered Canvas 2D rendering, pan, zoom, fit, selection, pencil/erase/recolor, and bounded local undo/redo.
+- Add viewport culling, separate interaction overlay, optional symbols, keyboard shortcuts, high-DPI rendering, and drag interpolation.
+- Fit and center the document from actual workspace dimensions while preserving manual viewport changes; add engine-backed, undoable quarter-turn and half-turn rotation.
+- Add validated versioned JSON import/export while clearly labeling the application as local-only.
+- Add pure unit tests, 100,000-stitch render-planning coverage, production build verification, and browser interaction/visual QA.
+
+**Exit:** A user can create, edit, recolor, erase, rotate, undo/redo, export, and import a valid private local cross-stitch pattern through an inspected browser interface, with reliable fit/centering across workspace resizes.
+
+## Milestone 3 — private persistence vertical slice (recommended next; not started)
 
 - Add the Fastify API and PostgreSQL migrations for users, sessions, projects, patterns, layers, colors, stitch elements, and change sets.
 - Add local authentication, secure sessions, owner-scoped repositories, forced RLS, and separate migration/application roles.
@@ -35,15 +48,6 @@ Implemented and verified on `feat/coc1-engine-kernel`.
 - Add cross-user denial tests, migration tests, optimistic-conflict tests, and backup/restore smoke documentation.
 
 **Exit:** Two test users cannot observe or mutate each other's resources through any supported path, and a pattern round-trips through PostgreSQL.
-
-## Milestone 3 — blank canvas editor
-
-- Add the React SPA shell and accessible editor controls.
-- Implement layered Canvas 2D rendering, pan, zoom, resize, selection, pencil/erase/recolor, local undo/redo, and debounced command-batch saves.
-- Add viewport culling, tile invalidation, symbols as well as colors, keyboard operation, and end-to-end tests.
-- Run the representative 10k/100k/500k rendering and payload benchmarks; decide whether normalized storage and Canvas 2D pass their gates.
-
-**Exit:** A user can create, edit, reload, and resume a private cross-stitch design with measured responsive behavior.
 
 ## Milestone 4 — palettes and physical threads
 

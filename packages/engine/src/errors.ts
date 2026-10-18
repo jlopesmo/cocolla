@@ -54,6 +54,20 @@ export class UnsupportedTechniqueError extends EngineError {
   }
 }
 
+export class UnsupportedTechniqueOperationError extends EngineError {
+  public constructor(
+    public readonly techniqueKey: string,
+    public readonly techniqueVersion: number,
+    public readonly operation: string,
+  ) {
+    super(
+      "UNSUPPORTED_TECHNIQUE_OPERATION",
+      `Technique ${techniqueKey}@${String(techniqueVersion)} does not support ${operation}.`,
+    );
+    this.name = "UnsupportedTechniqueOperationError";
+  }
+}
+
 export class PatternCommandError extends EngineError {
   public constructor(code: string, message: string) {
     super(code, message);

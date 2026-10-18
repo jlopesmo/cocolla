@@ -8,6 +8,7 @@ import {
   InvalidDocumentError,
   PatternCommandError,
   UnsupportedTechniqueError,
+  UnsupportedTechniqueOperationError,
 } from "./errors.js";
 import { defaultTechniqueRegistry } from "./default-registry.js";
 import { cloneJsonObject } from "./json.js";
@@ -15,8 +16,13 @@ import {
   assertValidPatternDocument,
   validatePatternDocument,
 } from "./validation.js";
+import type { PatternRotation } from "./types.js";
 
 export type PatternCommand =
+  | {
+      readonly type: "document.rotate";
+      readonly rotation: PatternRotation;
+    }
   | {
       readonly type: "stitch.add";
       readonly stitch: StitchElementV1;
@@ -64,6 +70,65 @@ const requireStitchIndex = (
   return index;
 };
 
+const rotatedBounds = (
+  document: PatternDocument,
+  rotation: PatternRotation,
+): PatternDocument["bounds"] =>
+  rotation === "180"
+    ? document.bounds
+    : { width: document.bounds.height, height: document.bounds.width };
+
+const isPatternRotation = (value: unknown): value is PatternRotation =>
+  value === "clockwise-90" ||
+  value === "counterclockwise-90" ||
+  value === "180";
+
+const rotateDocument = (
+  document: PatternDocument,
+  rotation: PatternRotation,
+): PatternDocument => {
+  const bounds = rotatedBounds(document, rotation);
+  const stitches = document.stitches.map((stitch) => {
+    const technique = defaultTechniqueRegistry.get(
+      stitch.technique.key,
+      stitch.technique.version,
+    );
+    if (technique === undefined) {
+      throw new UnsupportedTechniqueError(
+        stitch.technique.key,
+        stitch.technique.version,
+      );
+    }
+    if (technique.rotateGeometry === undefined) {
+      throw new UnsupportedTechniqueOperationError(
+        stitch.technique.key,
+        stitch.technique.version,
+        "document rotation",
+      );
+    }
+    return {
+      ...stitch,
+      geometry: technique.rotateGeometry(stitch, {
+        document,
+        rotation,
+        rotatedBounds: bounds,
+      }),
+      elementRevision: stitch.elementRevision + 1,
+    };
+  });
+  const rotated: PatternDocument = {
+    ...document,
+    revision: document.revision + 1,
+    bounds,
+    stitches,
+  };
+  const validation = validatePatternDocument(rotated);
+  if (!validation.valid) {
+    throw new InvalidDocumentError(validation.issues);
+  }
+  return rotated;
+};
+
 export const applyPatternCommands = (
   document: PatternDocument,
   batch: PatternCommandBatch,
@@ -88,6 +153,32 @@ export const applyPatternCommands = (
     );
   }
 
+  const documentCommands = batch.commands.filter(
+    (command) => command.type === "document.rotate",
+  );
+  if (documentCommands.length > 0) {
+    if (batch.commands.length !== 1) {
+      throw new PatternCommandError(
+        "DOCUMENT_COMMAND_MUST_BE_EXCLUSIVE",
+        "Document transformations must be applied in an exclusive command batch.",
+      );
+    }
+    const command = documentCommands[0];
+    if (command === undefined) {
+      throw new PatternCommandError(
+        "INVALID_DOCUMENT_COMMAND",
+        "Document transformation command is missing.",
+      );
+    }
+    if (!isPatternRotation(command.rotation)) {
+      throw new PatternCommandError(
+        "INVALID_ROTATION",
+        "Document rotation must be clockwise-90, counterclockwise-90, or 180.",
+      );
+    }
+    return rotateDocument(document, command.rotation);
+  }
+
   const slots: Array<StitchElementV1 | undefined> = [...document.stitches];
   const indexes = new Map(
     document.stitches.map((stitch, index) => [stitch.id, index] as const),
@@ -97,6 +188,11 @@ export const applyPatternCommands = (
 
   for (const command of batch.commands) {
     switch (command.type) {
+      case "document.rotate":
+        throw new PatternCommandError(
+          "INVALID_DOCUMENT_COMMAND",
+          "Document transformation was not applied exclusively.",
+        );
       case "stitch.add": {
         if (indexes.has(command.stitch.id)) {
           throw new PatternCommandError(

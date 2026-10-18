@@ -3,7 +3,10 @@ import type {
   JsonObject,
   PatternDocument,
   StitchElementV1,
+  StitchGeometryV1,
 } from "../../contracts/src/index.js";
+
+export type PatternRotation = "clockwise-90" | "counterclockwise-90" | "180";
 
 export type ValidationSeverity = "error" | "warning";
 
@@ -42,6 +45,14 @@ export interface TechniqueContext {
   readonly document: PatternDocument;
 }
 
+export interface TechniqueRotationContext extends TechniqueContext {
+  readonly rotation: PatternRotation;
+  readonly rotatedBounds: {
+    readonly width: number;
+    readonly height: number;
+  };
+}
+
 export interface StitchTechnique<TData extends JsonObject = JsonObject> {
   readonly key: string;
   readonly version: number;
@@ -62,6 +73,10 @@ export interface StitchTechnique<TData extends JsonObject = JsonObject> {
     option: TechniqueRouteOption,
     context: TechniqueContext,
   ): number;
+  rotateGeometry?(
+    element: StitchElementV1,
+    context: TechniqueRotationContext,
+  ): StitchGeometryV1;
   readonly __dataType?: TData;
 }
 
