@@ -3,7 +3,6 @@ export const MAX_IMAGE_PATTERN_DIMENSION = 500;
 export const MAX_IMAGE_PATTERN_STITCHES = 100_000;
 export const MIN_IMAGE_PATTERN_COLORS = 2;
 export const MAX_IMAGE_PATTERN_COLORS = 32;
-export const TRANSPARENT_ALPHA_THRESHOLD = 16;
 
 export interface RgbColor {
   readonly r: number;
@@ -191,7 +190,7 @@ const downsample = (
           const sourceIndex = (sourceY * source.width + sourceX) * 4;
           const alphaByte = source.data[sourceIndex + 3] ?? 0;
           const alpha = alphaByte / 255;
-          visible ||= alphaByte >= TRANSPARENT_ALPHA_THRESHOLD;
+          visible ||= alphaByte > 0;
           red += (source.data[sourceIndex] ?? 0) * alpha + 255 * (1 - alpha);
           green += (source.data[sourceIndex + 1] ?? 0) * alpha + 255 * (1 - alpha);
           blue += (source.data[sourceIndex + 2] ?? 0) * alpha + 255 * (1 - alpha);
