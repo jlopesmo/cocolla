@@ -15,6 +15,7 @@ import {
   renamePattern,
   rotatePattern,
   selectActiveColor,
+  setPatternColorSymbol,
   validatePatternDimensions,
 } from "../src/core/pattern.js";
 import {
@@ -165,6 +166,19 @@ test("color selection and usage counts follow the pattern palette", () => {
   );
   assert.equal(colorUsage(placed).get(color), 2);
   assert.throws(() => selectActiveColor(base, "missing-color"), /Unknown pattern color/u);
+});
+
+test("custom color symbols participate in history and JSON export", () => {
+  const base = createBlankPattern("Symbols", { width: 5, height: 5 });
+  const colorId = base.colors[0]?.id ?? "";
+  const changed = setPatternColorSymbol(base, colorId, "●");
+  let history = commitDocument(createDocumentHistory(base), changed);
+  assert.equal(history.present.colors[0]?.symbol, "●");
+  history = undoDocument(history);
+  assert.equal(history.present.colors[0]?.symbol, "A");
+  history = redoDocument(history);
+  const imported = parsePatternJson(exportPatternJson(history.present)).document;
+  assert.equal(imported.colors.find((color) => color.id === colorId)?.symbol, "●");
 });
 
 test("JSON export and import preserve valid documents and reject invalid input", () => {

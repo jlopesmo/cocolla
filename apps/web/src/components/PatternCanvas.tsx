@@ -3,6 +3,14 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { PatternDocument } from "../../../../packages/engine/src/index.js";
 import { createRenderPlan } from "../core/render-plan.js";
 import {
+  cellTintAlpha,
+  colorDisplayOpacity,
+  displayModeShowsColor,
+  displayModeShowsSymbols,
+  threadLineWidth,
+  type AppearancePreferences,
+} from "../core/appearance.js";
+import {
   cellPixels,
   cellToScreen,
   documentToScreen,
@@ -28,7 +36,8 @@ interface PatternCanvasProps {
   readonly viewport: Viewport;
   readonly tool: EditorTool;
   readonly showGrid: boolean;
-  readonly showSymbols: boolean;
+  readonly appearance: AppearancePreferences;
+  readonly isolatedColorIds: ReadonlySet<string> | null;
   readonly selectedCell: CellPoint | null;
   readonly onViewportChange: (viewport: Viewport) => void;
   readonly onCells: (action: "draw" | "erase", cells: readonly CellPoint[]) => void;
@@ -61,7 +70,8 @@ const drawCanvas = (
   viewport: Viewport,
   size: ViewportSize,
   showGrid: boolean,
-  showSymbols: boolean,
+  appearance: AppearancePreferences,
+  isolatedColorIds: ReadonlySet<string> | null,
 ): void => {
   const ratio = canvasPixelRatio();
   const width = Math.max(1, Math.round(size.width * ratio));
@@ -99,6 +109,27 @@ const drawCanvas = (
   context.rect(viewport.offsetX, viewport.offsetY, patternWidth, patternHeight);
   context.clip();
 
+  const colors = new Map(document.colors.map((color) => [color.id, color] as const));
+  const plan = createRenderPlan(document, viewport, size);
+
+  if (appearance.cellTintEnabled) {
+    const tintedCells = new Set<string>();
+    for (const { stitch } of plan.visible) {
+      const column = Math.floor(stitch.geometry.anchor.x / units);
+      const row = Math.floor(stitch.geometry.anchor.y / units);
+      const key = `${stitch.colorId}:${String(column)}:${String(row)}`;
+      if (tintedCells.has(key)) {
+        continue;
+      }
+      tintedCells.add(key);
+      const point = cellToScreen({ column, row }, viewport);
+      context.globalAlpha = cellTintAlpha(stitch.colorId, isolatedColorIds, appearance);
+      context.fillStyle = colors.get(stitch.colorId)?.rgb ?? "#4b5563";
+      context.fillRect(point.x, point.y, pixels, pixels);
+    }
+    context.globalAlpha = 1;
+  }
+
   if (showGrid && pixels >= 4) {
     const bounds = visibleCellBounds(viewport, size, 0);
     const minimumColumn = Math.max(0, bounds.minimumColumn);
@@ -124,8 +155,6 @@ const drawCanvas = (
     }
   }
 
-  const colors = new Map(document.colors.map((color) => [color.id, color] as const));
-  const plan = createRenderPlan(document, viewport, size);
   const linesByColor = new Map<string, Array<readonly [ScreenPoint, ScreenPoint]>>();
   for (const item of plan.visible) {
     for (const primitive of item.primitives) {
@@ -137,20 +166,29 @@ const drawCanvas = (
       linesByColor.set(primitive.colorId, lines);
     }
   }
-  context.lineCap = "round";
-  context.lineWidth = Math.max(1.4, Math.min(5, pixels * 0.14));
-  for (const [colorId, lines] of linesByColor) {
-    context.beginPath();
-    context.strokeStyle = colors.get(colorId)?.rgb ?? "#4b5563";
-    for (const [start, end] of lines) {
-      context.moveTo(start.x, start.y);
-      context.lineTo(end.x, end.y);
+  if (displayModeShowsColor(appearance.displayMode)) {
+    context.lineCap = "round";
+    context.lineWidth = threadLineWidth(pixels, appearance.threadThickness);
+    for (const [colorId, lines] of linesByColor) {
+      context.beginPath();
+      context.globalAlpha = colorDisplayOpacity(
+        colorId,
+        isolatedColorIds,
+        appearance.dimOpacity,
+      );
+      context.strokeStyle = colors.get(colorId)?.rgb ?? "#4b5563";
+      for (const [start, end] of lines) {
+        context.moveTo(start.x, start.y);
+        context.lineTo(end.x, end.y);
+      }
+      context.stroke();
     }
-    context.stroke();
+    context.globalAlpha = 1;
   }
 
-  if (showSymbols && pixels >= 18) {
-    context.font = `600 ${String(Math.min(12, pixels * 0.38))}px ui-sans-serif, system-ui`;
+  if (displayModeShowsSymbols(appearance.displayMode)) {
+    const fontSize = Math.max(7, Math.min(18, pixels * 0.48));
+    context.font = `700 ${String(fontSize)}px ui-sans-serif, system-ui`;
     context.textAlign = "center";
     context.textBaseline = "middle";
     for (const { stitch } of plan.visible) {
@@ -162,9 +200,29 @@ const drawCanvas = (
         units,
         viewport,
       );
-      context.fillStyle = "rgba(255,255,255,0.88)";
-      context.fillText(colors.get(stitch.colorId)?.symbol ?? "?", center.x, center.y);
+      context.globalAlpha = colorDisplayOpacity(
+        stitch.colorId,
+        isolatedColorIds,
+        appearance.dimOpacity,
+      );
+      if (pixels < 9) {
+        const marker = Math.max(1.5, pixels * 0.22);
+        context.fillStyle = "#263238";
+        context.fillRect(center.x - marker / 2, center.y - marker / 2, marker, marker);
+        continue;
+      }
+      const symbol = colors.get(stitch.colorId)?.symbol ?? "?";
+      context.lineWidth = Math.max(1.5, fontSize * 0.2);
+      context.strokeStyle = appearance.displayMode === "symbol"
+        ? "rgba(255,255,255,0.95)"
+        : "rgba(38,50,56,0.72)";
+      context.fillStyle = appearance.displayMode === "symbol"
+        ? "#263238"
+        : "rgba(255,255,255,0.96)";
+      context.strokeText(symbol, center.x, center.y);
+      context.fillText(symbol, center.x, center.y);
     }
+    context.globalAlpha = 1;
   }
 
   context.restore();
@@ -220,7 +278,8 @@ export const PatternCanvas = ({
   viewport,
   tool,
   showGrid,
-  showSymbols,
+  appearance,
+  isolatedColorIds,
   selectedCell,
   onViewportChange,
   onCells,
@@ -266,11 +325,12 @@ export const PatternCanvas = ({
         viewport,
         size,
         showGrid,
-        showSymbols,
+        appearance,
+        isolatedColorIds,
       );
     });
     return () => cancelAnimationFrame(frame);
-  }, [document, showGrid, showSymbols, size, viewport]);
+  }, [appearance, document, isolatedColorIds, showGrid, size, viewport]);
 
   useEffect(() => {
     const canvas = overlayCanvasRef.current;

@@ -87,6 +87,45 @@ test("command batches increment document revision once", () => {
   assert.equal(updated.stitches[1]?.colorId, red.id);
 });
 
+test("color symbols are immutable revisioned document commands", () => {
+  const original = makeDocument();
+  const updated = applyPatternCommand(original, {
+    type: "color.set-symbol",
+    colorId: black.id,
+    symbol: "◆",
+  });
+  assert.equal(original.colors[0]?.symbol, "X");
+  assert.equal(updated.colors[0]?.symbol, "◆");
+  assert.equal(updated.colors[1], original.colors[1]);
+  assert.equal(updated.revision, original.revision + 1);
+  assert.equal(
+    deserializePatternDocument(serializePatternDocument(updated)).colors[0]?.symbol,
+    "◆",
+  );
+});
+
+test("invalid symbol commands fail atomically", () => {
+  const original = makeDocument();
+  const before = serializePatternDocument(original);
+  assert.throws(
+    () => applyPatternCommand(original, {
+      type: "color.set-symbol",
+      colorId: black.id,
+      symbol: red.symbol,
+    }),
+    InvalidDocumentError,
+  );
+  assert.throws(
+    () => applyPatternCommand(original, {
+      type: "color.set-symbol",
+      colorId: "missing-color",
+      symbol: "M",
+    }),
+    { code: "COLOR_NOT_FOUND" },
+  );
+  assert.equal(serializePatternDocument(original), before);
+});
+
 test("document rotation transforms full-cross geometry and swaps rectangular bounds", () => {
   const base = makeDocument(4, 3);
   const document = applyPatternCommands(base, {
