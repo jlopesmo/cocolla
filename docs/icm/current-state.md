@@ -10,12 +10,12 @@
 - COC.2 implementation branch: `feat/coc2-visual-pattern-editor`.
 - COC.4.1 was squash-merged through GitHub PR #3 at commit `d0a4c594ad66444f046f1be341d24eb51f595a14`.
 - COC.4.2 was completed when GitHub PR #5 was squash-merged to `main` at commit `cea02eb66ef0cd8624cb3d54be4a656ebcadfb7e`.
-- COC.4.3 Stage 1 is implemented on `feat/coc4-thread-catalog-foundation` and is not merged.
+- COC.4.3 Stage 1 was squash-merged through GitHub PR #6 at commit `1a61bf2cf0f3aefbbffcc7697d8f6d7f6b760527`.
 - Architecture approved on 2026-10-18.
 
 ## Status
 
-COC.1, COC.2/COC.2.1, COC.4.1, and COC.4.2 are merged. COC.4.3 Stage 1 is implemented and validated on its isolated feature branch: catalog-neutral search/lookup/matching, portable thread assignments, explicit logical-color replacement, unresolved-entry behavior, and editor integration use a small synthetic catalog only. No verified DMC data, new dependency, backend, or persistence work is included.
+COC.1, COC.2/COC.2.1, COC.4.1, COC.4.2, and COC.4.3 Stage 1 are merged. Stage 1 provides catalog-neutral search/lookup/matching, portable thread assignments, explicit logical-color replacement, unresolved-entry behavior, and editor integration using a small synthetic catalog only. No verified DMC data, new dependency, backend, or catalog persistence work is included. COC.4.3 Stage 2 user-importable catalogs are documented as a proposal and are not implemented.
 
 ### Implemented
 
@@ -83,4 +83,4 @@ For the PR #5 correction, `npm run check` passed with 67 tests and `npm run buil
 
 ### Not implemented
 
-Fastify API, authentication, PostgreSQL persistence/RLS, server or browser draft persistence, server worker jobs, printable or machine exports, progress tracking, deployment, and AI adapters are not implemented on this branch. Image import creates full-cross patterns only and does not preserve the source image in the portable document. A verified DMC provider remains deferred until an exact catalog artifact, license/permission, attribution, trademark treatment, product-line scope, version, provenance, and update policy are approved; no official color data is claimed or included. Bulk palette remapping/merging, catalog-constrained image quantization, assignment snapshots beyond the stable ID, aliases/discontinued-product metadata, and catalog-version drift reports are also not implemented.
+Fastify API, authentication, PostgreSQL persistence/RLS, server or browser draft persistence, user catalog import/IndexedDB storage, server worker jobs, printable or machine exports, progress tracking, deployment, and AI adapters are not implemented on this branch. Image import creates full-cross patterns only and does not preserve the source image in the portable document. A verified DMC provider remains deferred until an exact catalog artifact, license/permission, attribution, trademark treatment, product-line scope, version, provenance, and update policy are approved; no official color data is claimed or included. Bulk palette remapping/merging, catalog-constrained image quantization, assignment snapshots beyond the stable ID, aliases/discontinued-product metadata, and catalog-version drift reports are also not implemented.
