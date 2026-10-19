@@ -177,6 +177,13 @@ export type ThreadAssignmentResolution =
   | { readonly status: "resolved"; readonly productId: string; readonly product: ThreadProduct }
   | { readonly status: "unresolved"; readonly productId: string };
 
+export const isThreadAssignmentResolutionCurrent = (
+  resolution: ThreadAssignmentResolution,
+  productId: string | null,
+): boolean => resolution.status === "unassigned"
+  ? productId === null
+  : resolution.productId === productId;
+
 export const resolveThreadAssignment = async (
   productId: string | null,
   catalogs: readonly ThreadCatalogProvider[],

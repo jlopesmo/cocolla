@@ -6,6 +6,7 @@ import {
   InMemoryThreadCatalogProvider,
   SYNTHETIC_THREAD_CATALOG_DESCRIPTOR,
   SYNTHETIC_THREAD_PRODUCTS,
+  isThreadAssignmentResolutionCurrent,
   resolveThreadAssignment,
   syntheticThreadCatalog,
 } from "../src/index.js";
@@ -73,6 +74,39 @@ test("assignment resolution preserves missing catalog identities", async () => {
   assert.deepEqual(
     await resolveThreadAssignment("offline.catalog:saved", [unavailable]),
     { status: "unresolved", productId: "offline.catalog:saved" },
+  );
+});
+
+test("assignment resolutions are displayed only for the current product id", () => {
+  const product = SYNTHETIC_THREAD_PRODUCTS[0]!;
+  assert.equal(
+    isThreadAssignmentResolutionCurrent({ status: "unassigned" }, null),
+    true,
+  );
+  assert.equal(
+    isThreadAssignmentResolutionCurrent({ status: "unassigned" }, product.id),
+    false,
+  );
+  assert.equal(
+    isThreadAssignmentResolutionCurrent(
+      { status: "resolved", productId: product.id, product },
+      product.id,
+    ),
+    true,
+  );
+  assert.equal(
+    isThreadAssignmentResolutionCurrent(
+      { status: "resolved", productId: product.id, product },
+      "another.catalog:product",
+    ),
+    false,
+  );
+  assert.equal(
+    isThreadAssignmentResolutionCurrent(
+      { status: "unresolved", productId: "missing.catalog:thread" },
+      null,
+    ),
+    false,
   );
 });
 

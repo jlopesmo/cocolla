@@ -7,6 +7,7 @@ import type {
   ThreadProduct,
 } from "../../../../packages/contracts/src/index.js";
 import {
+  isThreadAssignmentResolutionCurrent,
   resolveThreadAssignment,
   type ThreadAssignmentResolution,
 } from "../../../../packages/thread-catalog/src/index.js";
@@ -50,6 +51,11 @@ export const ThreadCatalogPanel = ({
     status: "unassigned",
   });
   const [error, setError] = useState<string | null>(null);
+  const activeThreadProductId = activeColor?.threadProductId ?? null;
+  const currentResolution = isThreadAssignmentResolutionCurrent(
+    resolution,
+    activeThreadProductId,
+  ) ? resolution : null;
 
   useEffect(() => {
     let current = true;
@@ -85,13 +91,13 @@ export const ThreadCatalogPanel = ({
   useEffect(() => {
     let current = true;
     void resolveThreadAssignment(
-      activeColor?.threadProductId ?? null,
+      activeThreadProductId,
       [catalog],
     ).then((next) => {
       if (current) setResolution(next);
     });
     return () => { current = false; };
-  }, [activeColor?.threadProductId, catalog]);
+  }, [activeThreadProductId, catalog]);
 
   return (
     <section className="sidebar-section thread-catalog-panel">
@@ -106,27 +112,29 @@ export const ThreadCatalogPanel = ({
         Synthetic development data — not official DMC or manufacturer products.
       </p>
 
-      <div className={`thread-assignment ${resolution.status}`}>
+      <div className={`thread-assignment ${currentResolution?.status ?? "pending"}`}>
         {activeColor === undefined ? (
           <span>Select a logical color to manage its thread mapping.</span>
-        ) : resolution.status === "resolved" ? (
+        ) : currentResolution === null ? (
+          <span>Resolving saved thread assignment…</span>
+        ) : currentResolution.status === "resolved" ? (
           <>
             <span
               aria-hidden="true"
               className="thread-swatch"
-              style={{ background: resolution.product.color.value }}
+              style={{ background: currentResolution.product.color.value }}
             />
             <div>
-              <strong>{resolution.product.manufacturerCode} · {resolution.product.name}</strong>
+              <strong>{currentResolution.product.manufacturerCode} · {currentResolution.product.name}</strong>
               <small>Assigned to {activeColor.name}</small>
             </div>
             <button onClick={onRemove} type="button">Remove</button>
           </>
-        ) : resolution.status === "unresolved" ? (
+        ) : currentResolution.status === "unresolved" ? (
           <>
             <div>
               <strong>Catalog entry unavailable</strong>
-              <small title={resolution.productId}>{resolution.productId}</small>
+              <small title={currentResolution.productId}>{currentResolution.productId}</small>
             </div>
             <button onClick={onRemove} type="button">Remove</button>
           </>

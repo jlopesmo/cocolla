@@ -7,6 +7,7 @@ export type { LabColor } from "./color.js";
 export {
   Ciede2000ThreadColorMatcher,
   InMemoryThreadCatalogProvider,
+  isThreadAssignmentResolutionCurrent,
   resolveThreadAssignment,
   validateThreadCatalog,
 } from "./catalog.js";
