@@ -14,14 +14,21 @@ import type {
 } from "../../../packages/engine/src/index.js";
 import { Icon } from "./components/Icon.js";
 import { ImageImportDialog } from "./components/ImageImportDialog.js";
+import { ManageCatalogsDialog } from "./components/ManageCatalogsDialog.js";
 import { NewPatternDialog } from "./components/NewPatternDialog.js";
 import { PatternCanvas } from "./components/PatternCanvas.js";
 import { ThreadCatalogPanel } from "./components/ThreadCatalogPanel.js";
-import type { ThreadProduct } from "../../../packages/contracts/src/index.js";
+import type {
+  PortableThreadCatalogV1,
+  ThreadCatalogProvider,
+  ThreadProduct,
+} from "../../../packages/contracts/src/index.js";
 import {
   Ciede2000ThreadColorMatcher,
+  InMemoryThreadCatalogProvider,
   syntheticThreadCatalog,
 } from "../../../packages/thread-catalog/src/index.js";
+import { IndexedDbThreadCatalogRepository } from "./platform/indexeddb-thread-catalog-repository.js";
 import {
   colorUsage,
   createBlankPattern,
@@ -142,6 +149,9 @@ export const App = (): React.JSX.Element => {
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [newPatternOpen, setNewPatternOpen] = useState(false);
   const [imageImportOpen, setImageImportOpen] = useState(false);
+  const [catalogManagerOpen, setCatalogManagerOpen] = useState(false);
+  const catalogRepository = useMemo(() => new IndexedDbThreadCatalogRepository(), []);
+  const [threadCatalog, setThreadCatalog] = useState<ThreadCatalogProvider>(syntheticThreadCatalog);
   const [notice, setNotice] = useState<Notice>({
     tone: "info",
     text: "Local editing only — export JSON to keep your work.",
@@ -153,6 +163,9 @@ export const App = (): React.JSX.Element => {
   const document = history.present;
   const activeColor = document.colors.find((color) => color.id === activeColorId);
   const isolatedColorIds = isolationEnabled ? selectedColorIds : null;
+  const catalogNotice = threadCatalog === syntheticThreadCatalog
+    ? "Synthetic development data — not official DMC or manufacturer products."
+    : "User-imported catalog stored locally in this browser. Colors and matches are approximate.";
   const availableSymbolValues = useMemo(
     () => new Set(
       availableCuratedChartSymbols(
@@ -210,6 +223,32 @@ export const App = (): React.JSX.Element => {
       // The editor still works when storage is blocked or unavailable.
     }
   }, [appearance]);
+
+  useEffect(() => {
+    let current = true;
+    void catalogRepository.getActiveCatalog()
+      .then(async (key) => key === null ? null : catalogRepository.getCatalog(key))
+      .then((catalog) => {
+        if (!current || catalog === null) return;
+        setThreadCatalog(new InMemoryThreadCatalogProvider(catalog.descriptor, catalog.products));
+      })
+      .catch((reason: unknown) => {
+        if (!current) return;
+        setNotice({
+          tone: "error",
+          text: reason instanceof Error
+            ? `Local thread catalogs are unavailable: ${reason.message}`
+            : "Local thread catalogs are unavailable.",
+        });
+      });
+    return () => { current = false; };
+  }, [catalogRepository]);
+
+  const selectManagedCatalog = useCallback((catalog: PortableThreadCatalogV1 | null): void => {
+    setThreadCatalog(catalog === null
+      ? syntheticThreadCatalog
+      : new InMemoryThreadCatalogProvider(catalog.descriptor, catalog.products));
+  }, []);
 
   useLayoutEffect(() => {
     if (canvasSize.width <= 1 || canvasSize.height <= 1) {
@@ -648,9 +687,11 @@ export const App = (): React.JSX.Element => {
 
           <ThreadCatalogPanel
             activeColor={activeColor}
-            catalog={syntheticThreadCatalog}
+            catalog={threadCatalog}
+            catalogNotice={catalogNotice}
             matcher={threadColorMatcher}
             onAssign={(productId) => assignThreadProduct(productId)}
+            onManageCatalogs={() => setCatalogManagerOpen(true)}
             onRemove={() => assignThreadProduct(null)}
             onReplace={replaceLogicalColor}
           />
@@ -837,6 +878,12 @@ export const App = (): React.JSX.Element => {
           onCancel={() => setImageImportOpen(false)}
         />
       ) : null}
+      <ManageCatalogsDialog
+        onCancel={() => setCatalogManagerOpen(false)}
+        onCatalogSelected={selectManagedCatalog}
+        open={catalogManagerOpen}
+        repository={catalogRepository}
+      />
     </div>
   );
 };

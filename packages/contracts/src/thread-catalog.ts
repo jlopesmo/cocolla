@@ -19,6 +19,20 @@ export interface ThreadCatalogDescriptor {
   readonly attribution: ThreadCatalogAttribution;
 }
 
+export interface ThreadCatalogRightsConfirmation {
+  readonly statementVersion: 1;
+  readonly confirmed: true;
+  readonly confirmedAt: string;
+}
+
+export interface PortableThreadCatalogV1 {
+  readonly format: "cocolla.thread-catalog";
+  readonly formatVersion: 1;
+  readonly descriptor: ThreadCatalogDescriptor;
+  readonly rightsConfirmation: ThreadCatalogRightsConfirmation;
+  readonly products: readonly ThreadProduct[];
+}
+
 export interface ThreadProductColor {
   readonly colorSpace: "srgb";
   readonly value: string;

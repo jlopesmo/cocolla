@@ -36,6 +36,8 @@ interface ThreadCatalogPanelProps {
   readonly onAssign: (productId: string) => void;
   readonly onRemove: () => void;
   readonly onReplace: (product: ThreadProduct) => void;
+  readonly catalogNotice: string;
+  readonly onManageCatalogs: () => void;
 }
 
 const includesQuery = (product: ThreadProduct, query: string): boolean => {
@@ -53,6 +55,8 @@ export const ThreadCatalogPanel = ({
   onAssign,
   onRemove,
   onReplace,
+  catalogNotice,
+  onManageCatalogs,
 }: ThreadCatalogPanelProps): React.JSX.Element => {
   const [query, setQuery] = useState("");
   const [view, setView] = useState<CatalogView>("catalog");
@@ -130,13 +134,13 @@ export const ThreadCatalogPanel = ({
     <section className="sidebar-section thread-catalog-panel">
       <div className="section-title">
         <span>Physical thread</span>
-        <small>{catalog.descriptor.brand}</small>
+        <button className="catalog-manage-button" onClick={onManageCatalogs} type="button">Manage</button>
       </div>
       <p className="catalog-identity">
-        {catalog.descriptor.line} · v{catalog.descriptor.version}
+        {catalog.descriptor.brand} · {catalog.descriptor.line} · version {catalog.descriptor.version}
       </p>
       <p className="catalog-warning">
-        Synthetic development data — not official DMC or manufacturer products.
+        {catalogNotice}
       </p>
 
       <div className={`thread-assignment ${currentResolution?.status ?? "pending"}`}>
@@ -173,7 +177,7 @@ export const ThreadCatalogPanel = ({
       <label className="catalog-search">
         <span className="visually-hidden">Search thread catalog</span>
         <input
-          aria-label="Search synthetic thread catalog"
+          aria-label="Search active thread catalog"
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search code or name"
           type="search"

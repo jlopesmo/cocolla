@@ -13,7 +13,7 @@
     "build:web": "vite build --config apps/web/vite.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit --pretty false && tsc -p apps/web/tsconfig.json --pretty false",
     "test": "npm run build:engine && node --test \"dist/packages/engine/test/*.test.js\" \"dist/packages/thread-catalog/test/*.test.js\" \"dist/apps/web/test/*.test.js\"",
-    "benchmark": "npm run build:engine && node dist/packages/engine/benchmarks/pattern.benchmark.js",
+    "benchmark": "npm run build:engine && node dist/packages/engine/benchmarks/pattern.benchmark.js && node dist/packages/thread-catalog/benchmarks/catalog.benchmark.js",
     "check": "npm run typecheck && npm test && npm run benchmark"
   },
   "devDependencies": {

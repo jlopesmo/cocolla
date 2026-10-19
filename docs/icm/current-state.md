@@ -11,11 +11,12 @@
 - COC.4.1 was squash-merged through GitHub PR #3 at commit `d0a4c594ad66444f046f1be341d24eb51f595a14`.
 - COC.4.2 was completed when GitHub PR #5 was squash-merged to `main` at commit `cea02eb66ef0cd8624cb3d54be4a656ebcadfb7e`.
 - COC.4.3 Stage 1 was squash-merged through GitHub PR #6 at commit `1a61bf2cf0f3aefbbffcc7697d8f6d7f6b760527`.
+- COC.4.3 Stage 2 is implemented and validated on `feat/coc4-user-catalog-import`; it is not merged.
 - Architecture approved on 2026-10-18.
 
 ## Status
 
-COC.1, COC.2/COC.2.1, COC.4.1, COC.4.2, and COC.4.3 Stage 1 are merged. Stage 1 provides catalog-neutral search/lookup/matching, portable thread assignments, explicit logical-color replacement, unresolved-entry behavior, and editor integration using a small synthetic catalog only. No verified DMC data, new dependency, backend, or catalog persistence work is included. COC.4.3 Stage 2 user-importable catalogs are documented as a proposal and are not implemented.
+COC.1, COC.2/COC.2.1, COC.4.1, COC.4.2, and COC.4.3 Stage 1 are merged. COC.4.3 Stage 2 is implemented on its isolated feature branch: users can validate, preview, persist, select, browse, export, delete, and restore their own local CSV/JSON thread catalogs without changing Pattern Document v1. No verified DMC data, new dependency, backend, or PostgreSQL work is included.
 
 ### Implemented
 
@@ -50,8 +51,28 @@ COC.1, COC.2/COC.2.1, COC.4.1, COC.4.2, and COC.4.3 Stage 1 are merged. Stage 1 
 - Revisioned `color.set-thread-product` and `color.replace` engine commands. The editor atomically remaps a logical color and assigns the chosen product while preserving color ID, chart symbol, stitches, layers, and geometry; existing snapshot history supplies undo/redo.
 - Searchable synthetic thread browser with catalog identity, codes, names, swatches, nearest-match ordering and ΔE00 display, assign/remove/replace actions, and explicit unresolved-product warnings. The 12 entries are invented Cocolla development fixtures and are not labeled as DMC or manufacturer products.
 - Pattern Document v1 JSON persistence for provider-qualified `threadProductId` values, including exact round trips when the referenced provider/product is unavailable. No schema migration was needed.
+- Portable `cocolla.thread-catalog` format version 1 with required user namespace, manufacturer, line, immutable release version, attribution, rights confirmation, stable product IDs, exact sRGB colors, strict runtime validation, and deterministic canonical JSON import/export.
+- Dependency-free bounded UTF-8 CSV import for required `code,name,hex` columns, including BOM, CRLF/LF, quoted commas, escaped quotes, and embedded lines. Imports are all-or-nothing with row-level diagnostics, a 5 MiB file limit, and a 10,000-product limit.
+- Catalog repository port with an in-memory test adapter and native IndexedDB implementation. Multiple identities/versions, atomic manifest/product imports and deletion, idempotent identical reimport, conflicting immutable-version rejection, persisted active selection, reload recovery, quota/unavailable-storage errors, and stored-content integrity checks are implemented.
+- Responsive **Manage catalogs** workflow for actual CSV/JSON files, provenance entry/review, explicit rights confirmation, product/swatch preview, installed version selection, canonical JSON backup export, confirmed deletion, and local-storage/backup warnings.
+- Imported providers reuse deterministic CIEDE2000 matching and existing thread assignment/replacement commands. Provider switching/deletion never revises pattern data; saved product IDs become visibly unresolved and resolve again after the matching catalog is restored and selected.
 
-### Verification
+### COC.4.3 Stage 2 verification
+
+`npm run check` passed on 2026-10-18 using Node v24.14.0 on Windows x64:
+
+- Strict engine and web typechecks: passed.
+- Automated tests: 90 passed, 0 failed. Stage 2 coverage includes CSV quoting/BOM/newline behavior, JSON format/version and unknown-field rejection, canonical ordering/round trips, invalid IDs/colors/dates, empty/oversized catalogs, the 5 MiB/10,000-product limits, duplicate detection, required metadata and rights confirmation, repository idempotency/conflicts, atomic deletion/selection, unavailable IndexedDB handling, and missing/restored assignment resolution. Existing engine/editor/image/viewport coverage remains green.
+- Existing 100,000-cell conversion, document-generation, and render-plan regressions completed in 60.0 ms, 181.2 ms, and 53.1 ms respectively.
+- The retained engine benchmark completed at 10,000 stitches (37.2 ms serialize; 26.1 ms deserialize) and 100,000 stitches (357.1 ms serialize; 175.5 ms deserialize).
+- A new 5,000-product synthetic catalog benchmark measured 18.0 ms CSV validation/import, 11.6 ms canonical serialization, 8.4 ms in-memory storage, 12.5 ms reload, and 11.0 ms CIEDE2000 matching. The CSV was 148,903 bytes and canonical JSON was 1,024,420 bytes.
+- `npm run build` passed. The generated web bundle was 334.07 kB JavaScript (103.35 kB gzip) and 25.00 kB CSS (5.69 kB gzip), excluding the source map.
+- Headless Microsoft Edge at 1440×1000 imported an actual CSV containing commas, escaped quotes, and an embedded line; previewed three swatches with zero errors; saved/searched/assigned the catalog; switched to an unavailable provider state; restored the assignment; deleted the catalog; reimported an actual browser-generated canonical JSON backup; and reloaded the page with its active catalog intact. A deliberately conflicting IndexedDB product write aborted the whole version transaction (`manifestExists: false`) and surfaced a version-conflict error. No browser exceptions or console errors were captured.
+- Browser end-to-end observations were 9.4 ms CSV preview, 130.5 ms IndexedDB save/select, 3.8 ms search, and 822.1 ms full page reload to restored active-catalog display. These and the standalone benchmark are single-run development-machine observations, not service-level guarantees.
+
+Browser persistence is origin/profile-local and may be cleared or quota-limited; canonical JSON export is the backup mechanism. Matching still scans the selected catalog and does not persist a Lab cache. The 5,000-product benchmark is intentionally much larger than typical floss catalogs, but peak memory, storage-eviction behavior, multi-tab races, mobile devices, and Synology-hosted browser behavior were not measured.
+
+### Prior COC.4.3 Stage 1 verification
 
 `npm run check` passed for COC.4.3 Stage 1 on 2026-10-18 using Node v24.14.0 on Windows x64:
 
@@ -83,4 +104,4 @@ For the PR #5 correction, `npm run check` passed with 67 tests and `npm run buil
 
 ### Not implemented
 
-Fastify API, authentication, PostgreSQL persistence/RLS, server or browser draft persistence, user catalog import/IndexedDB storage, server worker jobs, printable or machine exports, progress tracking, deployment, and AI adapters are not implemented on this branch. Image import creates full-cross patterns only and does not preserve the source image in the portable document. A verified DMC provider remains deferred until an exact catalog artifact, license/permission, attribution, trademark treatment, product-line scope, version, provenance, and update policy are approved; no official color data is claimed or included. Bulk palette remapping/merging, catalog-constrained image quantization, assignment snapshots beyond the stable ID, aliases/discontinued-product metadata, and catalog-version drift reports are also not implemented.
+Fastify API, authentication, PostgreSQL persistence/RLS, server or browser project/draft persistence, catalog synchronization/sharing, server worker jobs, printable or machine exports, progress tracking, deployment, and AI adapters are not implemented on this branch. Image import creates full-cross patterns only and does not preserve the source image in the portable document. A verified DMC provider remains deferred until an exact catalog artifact, license/permission, attribution, trademark treatment, product-line scope, version, provenance, and update policy are approved; no official color data is claimed or included. Bulk palette remapping/merging, catalog-constrained image quantization, assignment snapshots beyond the stable ID, aliases/discontinued-product metadata, and catalog-version drift reports are also not implemented.

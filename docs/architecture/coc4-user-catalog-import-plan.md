@@ -1,6 +1,6 @@
 # COC.4.3 Stage 2 — user-importable thread catalog proposal
 
-**Status:** Proposed; implementation requires separate approval
+**Status:** Approved and implemented on `feat/coc4-user-catalog-import`; pending review and merge
 **Prepared:** 2026-10-18
 **Scope:** Local CSV/JSON import, validation, browser persistence, catalog selection, and portable export
 
@@ -14,7 +14,7 @@ No Pattern Document migration is needed. A pattern continues to store only a sta
 
 ## Decision boundary
 
-This document proposes Stage 2 architecture. It does not approve:
+Stage 2 was approved for implementation on 2026-10-18. It does not approve:
 
 - a DMC or other manufacturer dataset;
 - redistribution of an imported catalog;
@@ -242,13 +242,6 @@ Report representative import time, selection/load time, matching time, storage s
 
 `localStorage` is the rejected catalog-store alternative. A single JSON blob is simpler initially but becomes synchronous, quota-fragile, and rewrite-heavy, and offers no atomic indexed product storage. An immediate PostgreSQL implementation is also rejected for this slice because it would couple local catalog use to the postponed backend and violate the offline/local requirement.
 
-## Approval gates
+## Approved implementation decisions
 
-Before implementation, approve:
-
-- the portable JSON v1 shape and catalog/product ID grammar;
-- IndexedDB as the initial durable catalog store;
-- the proposed file/product bounds and CSV profile;
-- the wording and retention of the rights-confirmation record;
-- whether JSON-only export is sufficient initially;
-- the minimal vertical slice and explicit deferrals.
+The 2026-10-18 Stage 2 authorization approved the portable JSON v1 contract and ID grammar, native IndexedDB persistence, the 5 MiB/10,000-product bounds, the bounded CSV profile, explicit rights confirmation, canonical JSON-only catalog export, the minimal vertical slice, and its recorded deferrals. ADR 0009 records the implemented decision.
