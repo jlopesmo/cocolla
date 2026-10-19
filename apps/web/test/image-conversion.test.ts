@@ -120,6 +120,20 @@ test("fully transparent output cells stay empty and partial alpha composites on 
   assert.deepEqual(converted.palette, [{ r: 127, g: 127, b: 127 }]);
 });
 
+test("very low but nonzero alpha remains a visible stitch", () => {
+  const converted = convertImagePixels(
+    pixels(2, 1, [
+      [255, 0, 0, 0],
+      [0, 0, 0, 1],
+    ]),
+    { width: 2, height: 1, maxColors: 4, dither: false },
+  );
+
+  assert.deepEqual([...converted.colorIndices], [-1, 0]);
+  assert.equal(converted.stitchCount, 1);
+  assert.deepEqual(converted.palette, [{ r: 254, g: 254, b: 254 }]);
+});
+
 test("PNG, JPEG, and WebP headers expose dimensions without decoding", () => {
   const png = new Uint8Array(24);
   png.set([137, 80, 78, 71, 13, 10, 26, 10]);
