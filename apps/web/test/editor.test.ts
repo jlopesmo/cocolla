@@ -16,14 +16,21 @@ import {
   rotatePattern,
   selectActiveColor,
   setPatternColorSymbol,
+  setPatternThreadProduct,
+  replacePatternColorWithThread,
   validatePatternDimensions,
 } from "../src/core/pattern.js";
+import { SYNTHETIC_THREAD_PRODUCTS } from "../../../packages/thread-catalog/src/index.js";
 import {
   commitDocument,
   createDocumentHistory,
   redoDocument,
   undoDocument,
 } from "../src/core/history.js";
+import {
+  isThreadCatalogResultCurrent,
+  threadCatalogResultKey,
+} from "../src/core/thread-catalog-state.js";
 import { pointerAction, traceCellsBetween } from "../src/core/interaction.js";
 
 const sequentialIds = (): (() => string) => {
@@ -179,6 +186,64 @@ test("custom color symbols participate in history and JSON export", () => {
   history = redoDocument(history);
   const imported = parsePatternJson(exportPatternJson(history.present)).document;
   assert.equal(imported.colors.find((color) => color.id === colorId)?.symbol, "●");
+});
+
+test("nearest thread results are bound to the active logical color", () => {
+  const firstKey = threadCatalogResultKey({
+    catalogId: "cocolla.synthetic",
+    catalogVersion: "1",
+    query: "",
+    view: "nearest",
+    activeColorId: "color:first",
+    activeColorRgb: "#112233",
+  });
+  const nextKey = threadCatalogResultKey({
+    catalogId: "cocolla.synthetic",
+    catalogVersion: "1",
+    query: "",
+    view: "nearest",
+    activeColorId: "color:next",
+    activeColorRgb: "#112233",
+  });
+
+  assert.equal(isThreadCatalogResultCurrent(firstKey, firstKey), true);
+  assert.equal(isThreadCatalogResultCurrent(firstKey, nextKey), false);
+});
+
+test("thread assignment and replacement participate in history and JSON export", () => {
+  const base = createBlankPattern("Thread palette", { width: 8, height: 8 });
+  const color = base.colors[0];
+  const product = SYNTHETIC_THREAD_PRODUCTS[1];
+  assert.ok(color !== undefined && product !== undefined);
+
+  const assigned = setPatternThreadProduct(base, color.id, product.id);
+  const replaced = replacePatternColorWithThread(assigned, color.id, product);
+  assert.equal(replaced.revision, assigned.revision + 1);
+  assert.equal(replaced.colors[0]?.id, color.id);
+  assert.equal(replaced.colors[0]?.symbol, color.symbol);
+  assert.equal(replaced.colors[0]?.rgb, product.color.value);
+  assert.equal(replaced.colors[0]?.threadProductId, product.id);
+
+  let history = commitDocument(createDocumentHistory(base), assigned);
+  history = commitDocument(history, replaced);
+  history = undoDocument(history);
+  assert.equal(history.present.colors[0]?.rgb, color.rgb);
+  assert.equal(history.present.colors[0]?.threadProductId, product.id);
+  history = undoDocument(history);
+  assert.equal(history.present.colors[0]?.threadProductId, null);
+  history = redoDocument(history);
+  history = redoDocument(history);
+  const imported = parsePatternJson(exportPatternJson(history.present)).document;
+  assert.deepEqual(
+    imported.colors.find((candidate) => candidate.id === color.id),
+    replaced.colors.find((candidate) => candidate.id === color.id),
+  );
+
+  const removed = setPatternThreadProduct(imported, color.id, null);
+  assert.equal(
+    removed.colors.find((candidate) => candidate.id === color.id)?.threadProductId,
+    null,
+  );
 });
 
 test("JSON export and import preserve valid documents and reject invalid input", () => {

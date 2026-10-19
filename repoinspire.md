@@ -299,6 +299,64 @@ Order is an assistant-proposed evaluation sequence. The user-decided priority is
 - **Implementation or usage references:** `package.json`; `package-lock.json`; `packages/engine/test`; `packages/engine/benchmarks`; `apps/web`
 - **Upstream aliases / fork relationship:** package content is maintained under `DefinitelyTyped/DefinitelyTyped`; no fork relationship recorded
 
+### makebead/craft-color-codes
+
+- **Repository ID:** `makebead/craft-color-codes`
+- **Repository URL:** https://github.com/makebead/craft-color-codes
+- **Reference classification:** `candidate_reference`
+- **Added:** 2026-10-18
+- **Last reviewed:** 2026-10-18 (repository, DMC source notes, and data-license review; no data imported or compatibility test)
+- **Why relevant:** Candidate source for an optional DMC Six-Strand Embroidery Floss catalog with codes, names, and approximate RGB/HEX values
+- **Adoption status:** `candidate`
+- **Status decision date:** not decided
+- **Status decision and reason:** strongest openly licensed candidate found, but not approved because upstream rights for all community-derived DMC values were not established
+- **Decision evidence:** `docs/architecture/coc4-thread-catalog-plan.md`; upstream `README.md`, `SOURCES.md`, and `LICENSE-DATA.md`
+- **Proposed use type:** `code_reuse`
+- **Selected use type:** undecided
+- **Proposed evaluation rank:** 9
+- **Proposed evaluation priority:** `coc4_3_data_candidate`
+- **Proposal rationale:** The repository declares its data CC BY 4.0, documents a 489-entry cross-checked DMC palette, and publishes per-palette provenance and limitations
+- **User-decided project priority:** not set
+- **Priority decision date and evidence:** not set
+- **Reported license:** MIT for code; CC BY 4.0 for most `data/`, including the DMC compilation
+- **License review status:** `documentation_reviewed_with_open_provenance_question`; checked date: 2026-10-18
+- **License evidence and notes:** https://github.com/makebead/craft-color-codes/blob/main/LICENSE; https://github.com/makebead/craft-color-codes/blob/main/LICENSE-DATA.md; https://github.com/makebead/craft-color-codes/blob/main/SOURCES.md. The DMC values cite community sources including `adrianj/CrossStitchCreator`; this review did not establish redistribution rights for each upstream contribution. The compilation license is not treated as legal clearance for upstream material
+- **Constraints / incompatibilities:** Approximate screen colors are not physical measurements; repository maturity and independent review are limited; CC BY attribution would be mandatory; DMC trademark and manufacturer-content terms remain separate
+- **Research evidence:** https://github.com/makebead/craft-color-codes; `docs/architecture/coc4-thread-catalog-plan.md`
+- **Possible later use notes:** reconsider only after the exact artifact/revision, attribution placement, upstream provenance, and legal acceptability are approved
+- **Adoption scope:** none approved; no dependency or catalog data may be added from this entry
+- **Implementation or usage references:** none recorded
+- **Upstream aliases / fork relationship:** no verified alias or fork relationship; its DMC palette documents a lineage from several third-party sources
+
+### Rejected community DMC catalog sources
+
+- **Repository IDs:** `sharlagelfand/dmc`; `adrianj/CrossStitchCreator`; `seanockert/rgb-to-dmc`; `zilliah/embroidery-floss-api`
+- **Repository URLs:** https://github.com/sharlagelfand/dmc; https://github.com/adrianj/CrossStitchCreator; https://github.com/seanockert/rgb-to-dmc; https://github.com/zilliah/embroidery-floss-api
+- **Reference classification:** `candidate_reference`
+- **Added:** 2026-10-18
+- **Last reviewed:** 2026-10-18 (repository/readme/license/data-provenance review; no data imported or code executed)
+- **Why relevant:** Public DMC code/name/RGB datasets and matching examples considered during COC.4.3 source research
+- **Adoption status:** `rejected`
+- **Status decision date:** 2026-10-18
+- **Status decision and reason:** rejected as catalog reuse sources because a sufficiently clear, complete redistribution and data-provenance chain was not established; some are incomplete or outdated
+- **Decision evidence:** `docs/architecture/coc4-thread-catalog-plan.md`; repository README, license, and data-generation files reviewed there
+- **Proposed use type:** `code_reuse`
+- **Selected use type:** none
+- **Proposed evaluation rank:** not ranked after rejection
+- **Proposed evaluation priority:** `rejected_data_source`
+- **Proposal rationale:** evaluated only to locate a redistributable DMC catalog and understand common RGB-data lineage
+- **User-decided project priority:** not set
+- **Priority decision date and evidence:** not set
+- **Reported license:** `sharlagelfand/dmc` package code is MIT; no usable separate dataset license was established for its `adrianj`-derived data. No repository license was found during review for the other three sources
+- **License review status:** `rejected_insufficient_data_rights`; checked date: 2026-10-18
+- **License evidence and notes:** `sharlagelfand/dmc/data-raw/floss.R` identifies `adrianj/CrossStitchCreator` as its source and records manual trial-and-error corrections. `seanockert/rgb-to-dmc` cites third-party web charts. `zilliah/embroidery-floss-api` describes only a basic subset. Absence of a detected license is not proof of ownership or permission
+- **Constraints / incompatibilities:** unclear upstream origin/rights, incomplete or older color ranges, approximate/unmeasured RGB values, and insufficient update/version metadata
+- **Research evidence:** repository URLs above; `docs/architecture/coc4-thread-catalog-plan.md`
+- **Possible later use notes:** do not reconsider unless a source supplies materially new license and provenance evidence addressing this rejection
+- **Adoption scope:** none
+- **Implementation or usage references:** none recorded
+- **Upstream aliases / fork relationship:** `sharlagelfand/dmc` explicitly derives its data from `adrianj/CrossStitchCreator`; other lineage claims remain as documented in their own repositories
+
 ## Decision history
 
 - 2026-10-18 — `storytold/artcraft`: carried into this register as `candidate_reference`. Retained for future exploration; no install or implementation decision. Proposed rank 1 is an assistant assessment; user-decided priority and selected use remain unset
@@ -306,6 +364,8 @@ Order is an assistant-proposed evaluation sequence. The user-decided priority is
 - 2026-10-18 — COC.1 architecture approved: React, Fastify, PostgreSQL, and Compose moved to `planned`; TypeScript 5.9.3 and Node 24 LTS moved to `actively_using` with Milestone 1 evidence
 - 2026-10-18 — `DefinitelyTyped/DefinitelyTyped`: accepted and marked `actively_using` for `@types/node` 24.10.9 in Milestone 1 tooling; no engine runtime dependency added
 - 2026-10-18 — COC.2 authorized and implemented React 19.3.1, React DOM 19.3.1, Vite 8.3.4, `@vitejs/plugin-react` 6.1.2, and React/DOM type declarations. React moved from `planned` to `actively_using`; the Vite repositories were accepted as `actively_using` with build and browser evidence
+- 2026-10-18 — COC.4.3 source research retained `makebead/craft-color-codes` as a catalog-data candidate only, pending upstream-rights and attribution approval. `sharlagelfand/dmc`, `adrianj/CrossStitchCreator`, `seanockert/rgb-to-dmc`, and `zilliah/embroidery-floss-api` were rejected as reusable catalog sources because clear, complete data provenance and redistribution rights were not established. No dependency or catalog data was adopted
+- 2026-10-18 — COC.4.3 Stage 1 implemented a dependency-free catalog/matcher foundation and an invented Cocolla synthetic fixture. No external catalog repository, DMC data, or new dependency was adopted, so the candidate and rejection statuses above remain unchanged
 
 ## Maintenance and identity
 

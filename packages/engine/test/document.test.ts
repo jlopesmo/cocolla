@@ -126,6 +126,121 @@ test("invalid symbol commands fail atomically", () => {
   assert.equal(serializePatternDocument(original), before);
 });
 
+test("thread assignments and logical color replacement are immutable revisioned commands", () => {
+  const original = applyPatternCommand(makeDocument(), {
+    type: "stitch.add",
+    stitch: fullCross("stitch-color-reference", 1, 1, black.id),
+  });
+  const assigned = applyPatternCommand(original, {
+    type: "color.set-thread-product",
+    colorId: black.id,
+    threadProductId: "cocolla.synthetic-threads:S001",
+  });
+  const replaced = applyPatternCommand(assigned, {
+    type: "color.replace",
+    colorId: black.id,
+    name: "Night Ink",
+    rgb: "#263238",
+  });
+
+  assert.equal(original.colors[0]?.threadProductId, null);
+  assert.equal(assigned.colors[0]?.threadProductId, "cocolla.synthetic-threads:S001");
+  assert.deepEqual(
+    replaced.colors[0],
+    {
+      ...black,
+      name: "Night Ink",
+      rgb: "#263238",
+      threadProductId: "cocolla.synthetic-threads:S001",
+    },
+  );
+  assert.equal(replaced.stitches[0]?.colorId, black.id);
+  assert.equal(replaced.stitches[0]?.elementRevision, 0);
+  assert.equal(replaced.colors[0]?.symbol, black.symbol);
+  assert.equal(replaced.revision, original.revision + 2);
+  assert.deepEqual(
+    deserializePatternDocument(serializePatternDocument(replaced)),
+    replaced,
+  );
+});
+
+test("thread replacement batches update once and reject invalid changes atomically", () => {
+  const original = makeDocument();
+  const before = serializePatternDocument(original);
+  const updated = applyPatternCommands(original, {
+    baseRevision: original.revision,
+    commands: [
+      {
+        type: "color.replace",
+        colorId: black.id,
+        name: "Synthetic Black",
+        rgb: "#101112",
+      },
+      {
+        type: "color.set-thread-product",
+        colorId: black.id,
+        threadProductId: "cocolla.synthetic-threads:S001",
+      },
+    ],
+  });
+  assert.equal(updated.revision, original.revision + 1);
+  assert.equal(updated.colors[0]?.rgb, "#101112");
+  assert.equal(updated.colors[0]?.threadProductId, "cocolla.synthetic-threads:S001");
+
+  assert.throws(
+    () => applyPatternCommands(original, {
+      baseRevision: original.revision,
+      commands: [
+        {
+          type: "color.set-thread-product",
+          colorId: black.id,
+          threadProductId: "cocolla.synthetic-threads:S001",
+        },
+        {
+          type: "color.replace",
+          colorId: black.id,
+          name: "",
+          rgb: "invalid",
+        },
+      ],
+    }),
+    InvalidDocumentError,
+  );
+  assert.throws(
+    () => applyPatternCommand(original, {
+      type: "color.set-thread-product",
+      colorId: "missing-color",
+      threadProductId: "catalog:thread",
+    }),
+    { code: "COLOR_NOT_FOUND" },
+  );
+  assert.throws(
+    () => applyPatternCommands(original, {
+      baseRevision: original.revision + 1,
+      commands: [{
+        type: "color.set-thread-product",
+        colorId: black.id,
+        threadProductId: null,
+      }],
+    }),
+    { code: "REVISION_CONFLICT" },
+  );
+  assert.equal(serializePatternDocument(original), before);
+});
+
+test("unknown catalog assignments survive canonical JSON without a provider", () => {
+  const assigned = applyPatternCommand(makeDocument(), {
+    type: "color.set-thread-product",
+    colorId: black.id,
+    threadProductId: "future.catalog:archived-product",
+  });
+  const restored = deserializePatternDocument(serializePatternDocument(assigned));
+  assert.equal(
+    restored.colors.find((color) => color.id === black.id)?.threadProductId,
+    "future.catalog:archived-product",
+  );
+});
+
 test("document rotation transforms full-cross geometry and swaps rectangular bounds", () => {
   const base = makeDocument(4, 3);
   const document = applyPatternCommands(base, {

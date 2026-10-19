@@ -9,12 +9,13 @@
 - Milestone 1 was squash-merged to `main` through GitHub PR #1 at commit `8a679bccdae8e116af37aca23466da6f28db47d7`.
 - COC.2 implementation branch: `feat/coc2-visual-pattern-editor`.
 - COC.4.1 was squash-merged through GitHub PR #3 at commit `d0a4c594ad66444f046f1be341d24eb51f595a14`.
-- COC.4.2 implementation branch: `feat/coc4-image-import` (pending review; not merged).
+- COC.4.2 was completed when GitHub PR #5 was squash-merged to `main` at commit `cea02eb66ef0cd8624cb3d54be4a656ebcadfb7e`.
+- COC.4.3 Stage 1 is implemented on `feat/coc4-thread-catalog-foundation` and is not merged.
 - Architecture approved on 2026-10-18.
 
 ## Status
 
-COC.1, COC.2/COC.2.1, and COC.4.1 are merged. COC.4.2 local image-to-pattern conversion is implemented and verified on `feat/coc4-image-import`, pending review and merge.
+COC.1, COC.2/COC.2.1, COC.4.1, and COC.4.2 are merged. COC.4.3 Stage 1 is implemented and validated on its isolated feature branch: catalog-neutral search/lookup/matching, portable thread assignments, explicit logical-color replacement, unresolved-entry behavior, and editor integration use a small synthetic catalog only. No verified DMC data, new dependency, backend, or persistence work is included.
 
 ### Implemented
 
@@ -44,9 +45,26 @@ COC.1, COC.2/COC.2.1, and COC.4.1 are merged. COC.4.2 local image-to-pattern con
 - Dependency-free deterministic median-cut color quantization and optional Floyd–Steinberg error diffusion in a Web Worker. Debounced request identifiers prevent stale results from replacing newer previews.
 - Native version 1 full-cross pattern generation with row/column-derived stable stitch IDs, unique curated default chart symbols, validated integer coordinates, editable history integration, automatic fit, and canonical JSON compatibility.
 - Transparent source regions remain empty fabric when an output cell is fully transparent; partial alpha is composited onto white before quantization. The policy is recorded in the generated document extension.
-- Provider-neutral thread-catalog and color-matcher TypeScript ports with required source, licensing, redistribution, catalog-version, product-ID, algorithm-version, and color-provenance fields. No physical catalog data is bundled.
+- Provider-neutral thread-catalog and color-matcher TypeScript ports with required source, licensing, redistribution, catalog-version, product-ID, algorithm-version, and color-provenance fields. No verified manufacturer catalog data is bundled.
+- UI-independent `packages/thread-catalog` implementation with catalog validation, deterministic code/name search and pagination, stable lookup, unresolved-assignment resolution, sRGB-to-D50-Lab conversion, and CIEDE2000 ranking with deterministic ties.
+- Revisioned `color.set-thread-product` and `color.replace` engine commands. The editor atomically remaps a logical color and assigns the chosen product while preserving color ID, chart symbol, stitches, layers, and geometry; existing snapshot history supplies undo/redo.
+- Searchable synthetic thread browser with catalog identity, codes, names, swatches, nearest-match ordering and ΔE00 display, assign/remove/replace actions, and explicit unresolved-product warnings. The 12 entries are invented Cocolla development fixtures and are not labeled as DMC or manufacturer products.
+- Pattern Document v1 JSON persistence for provider-qualified `threadProductId` values, including exact round trips when the referenced provider/product is unavailable. No schema migration was needed.
 
 ### Verification
+
+`npm run check` passed for COC.4.3 Stage 1 on 2026-10-18 using Node v24.14.0 on Windows x64:
+
+- Strict engine and web typechecks: passed.
+- Automated tests: 79 passed, 0 failed. New coverage includes all 34 published Sharma CIEDE2000 reference pairs, deterministic matching/ties, catalog validation/search/filter/pagination, assignment resolution, stale assignment and nearest-result suppression, provider failure, unknown-ID JSON preservation, revision conflicts, invalid/atomic commands, immutable logical-color replacement, symbols, undo/redo, and export/import.
+- Existing 100,000-cell conversion, document-generation, and render-plan regressions completed in 53.6 ms, 152.2 ms, and 73.7 ms respectively during the final integration run.
+- The standalone engine benchmark completed at 10,000 stitches (1,918,294 serialized bytes; 38.5 ms serialize; 24.7 ms deserialize) and 100,000 stitches (19,330,231 bytes; 345.6 ms serialize; 208.0 ms deserialize). These are single-run development-machine observations, not service-level guarantees.
+- Production build passed. The generated web bundle was 304.17 kB JavaScript (94.96 kB gzip) and 20.97 kB CSS (4.96 kB gzip), excluding the source map.
+- Headless Microsoft Edge QA at 1440×1000 verified all 12 synthetic entries, code/name filtering, nearest-match ordering, assignment, atomic logical-color replacement, undo/redo, retained chart symbol and active logical-color identity, and zero captured browser errors. The final catalog/editor state was visually inspected.
+
+The matcher currently scans and converts the provider's products for each request. This is appropriate for the 12-entry synthetic fixture but has not been profiled against a verified full catalog; immutable per-version Lab caching is recommended before such a provider ships.
+
+### Prior milestone verification
 
 `npm run check` passed for COC.4.2 on 2026-10-18 using Node v24.14.0 on Windows x64:
 
@@ -59,6 +77,10 @@ COC.1, COC.2/COC.2.1, and COC.4.1 are merged. COC.4.2 local image-to-pattern con
 
 Measurements are single-run development-machine observations, not service-level guarantees. Conversion work is off the UI thread, but native document construction/validation on Apply and subsequent Canvas planning still run on the main thread. Render planning scans the full stitch collection. Tests do not measure peak memory, color-profile fidelity, sustained frame rate, mobile devices, or Synology behavior.
 
+Immediately before PR #4 was merged, `npm run check` again passed with 66 tests and `npm run build` passed. That run observed 49.8 ms for the 100,000-cell conversion regression, 159.2 ms for native document generation/validation, and 42.9 ms for the 100,000-stitch render-plan regression. GitHub had no configured Actions workflow or commit status checks for the PR, so local validation is the recorded merge evidence.
+
+For the PR #5 correction, `npm run check` passed with 67 tests and `npm run build` passed. Its single added regression proves that alpha value 1 remains a visible stitch while alpha 0 remains empty. That run observed 94.4 ms for 100,000-cell conversion, 321.5 ms for 100,000-cell document generation/validation, and 51.9 ms for the 100,000-stitch render-plan regression; the standalone engine benchmark also completed at both 10,000 and 100,000 stitches.
+
 ### Not implemented
 
-Fastify API, authentication, PostgreSQL persistence/RLS, server or browser draft persistence, server worker jobs, printable or machine exports, progress tracking, deployment, and AI adapters are not implemented on this branch. Image import creates full-cross patterns only and does not preserve the source image in the portable document. DMC browsing and matching are intentionally deferred until an exact catalog source, license, attribution, redistribution policy, and matching algorithm are approved; no official color data is claimed or included.
+Fastify API, authentication, PostgreSQL persistence/RLS, server or browser draft persistence, server worker jobs, printable or machine exports, progress tracking, deployment, and AI adapters are not implemented on this branch. Image import creates full-cross patterns only and does not preserve the source image in the portable document. A verified DMC provider remains deferred until an exact catalog artifact, license/permission, attribution, trademark treatment, product-line scope, version, provenance, and update policy are approved; no official color data is claimed or included. Bulk palette remapping/merging, catalog-constrained image quantization, assignment snapshots beyond the stable ID, aliases/discontinued-product metadata, and catalog-version drift reports are also not implemented.

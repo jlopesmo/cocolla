@@ -45,6 +45,17 @@ export type PatternCommand =
       readonly type: "color.set-symbol";
       readonly colorId: string;
       readonly symbol: string;
+    }
+  | {
+      readonly type: "color.set-thread-product";
+      readonly colorId: string;
+      readonly threadProductId: string | null;
+    }
+  | {
+      readonly type: "color.replace";
+      readonly colorId: string;
+      readonly name: string;
+      readonly rgb: string;
     };
 
 export interface PatternCommandBatch {
@@ -293,6 +304,39 @@ export const applyPatternCommands = (
           );
         }
         colors[index] = { ...color, symbol: command.symbol };
+        colorsChanged = true;
+        break;
+      }
+      case "color.set-thread-product": {
+        const index = colorIndexes.get(command.colorId);
+        const color = index === undefined ? undefined : colors[index];
+        if (index === undefined || color === undefined) {
+          throw new PatternCommandError(
+            "COLOR_NOT_FOUND",
+            `Color not found: ${command.colorId}.`,
+          );
+        }
+        colors[index] = {
+          ...color,
+          threadProductId: command.threadProductId,
+        };
+        colorsChanged = true;
+        break;
+      }
+      case "color.replace": {
+        const index = colorIndexes.get(command.colorId);
+        const color = index === undefined ? undefined : colors[index];
+        if (index === undefined || color === undefined) {
+          throw new PatternCommandError(
+            "COLOR_NOT_FOUND",
+            `Color not found: ${command.colorId}.`,
+          );
+        }
+        colors[index] = {
+          ...color,
+          name: command.name,
+          rgb: command.rgb,
+        };
         colorsChanged = true;
         break;
       }
