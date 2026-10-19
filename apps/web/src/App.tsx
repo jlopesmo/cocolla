@@ -16,6 +16,12 @@ import { Icon } from "./components/Icon.js";
 import { ImageImportDialog } from "./components/ImageImportDialog.js";
 import { NewPatternDialog } from "./components/NewPatternDialog.js";
 import { PatternCanvas } from "./components/PatternCanvas.js";
+import { ThreadCatalogPanel } from "./components/ThreadCatalogPanel.js";
+import type { ThreadProduct } from "../../../packages/contracts/src/index.js";
+import {
+  Ciede2000ThreadColorMatcher,
+  syntheticThreadCatalog,
+} from "../../../packages/thread-catalog/src/index.js";
 import {
   colorUsage,
   createBlankPattern,
@@ -27,6 +33,8 @@ import {
   rotatePattern,
   selectActiveColor,
   setPatternColorSymbol,
+  setPatternThreadProduct,
+  replacePatternColorWithThread,
   unsupportedTechniqueCount,
   type PatternDimensions,
 } from "./core/pattern.js";
@@ -70,6 +78,7 @@ type Notice = { readonly tone: "info" | "error"; readonly text: string } | null;
 
 const INITIAL_DIMENSIONS: PatternDimensions = { width: 40, height: 30 };
 const initialDocument = createBlankPattern("Untitled sampler", INITIAL_DIMENSIONS);
+const threadColorMatcher = new Ciede2000ThreadColorMatcher();
 
 const loadAppearancePreferences = (): AppearancePreferences => {
   try {
@@ -406,6 +415,46 @@ export const App = (): React.JSX.Element => {
     }
   };
 
+  const assignThreadProduct = (threadProductId: string | null): void => {
+    if (activeColor === undefined) return;
+    try {
+      const updated = setPatternThreadProduct(document, activeColor.id, threadProductId);
+      setHistory(commitDocument(history, updated));
+      setNotice({
+        tone: "info",
+        text: threadProductId === null
+          ? `Physical thread removed from ${activeColor.name}.`
+          : `Physical thread assigned to ${activeColor.name}.`,
+      });
+    } catch (error) {
+      setNotice({
+        tone: "error",
+        text: error instanceof Error ? error.message : "Thread assignment failed.",
+      });
+    }
+  };
+
+  const replaceLogicalColor = (product: ThreadProduct): void => {
+    if (activeColor === undefined) return;
+    try {
+      const updated = replacePatternColorWithThread(
+        document,
+        activeColor.id,
+        product,
+      );
+      setHistory(commitDocument(history, updated));
+      setNotice({
+        tone: "info",
+        text: `${activeColor.name} replaced with ${product.name}; stitch references and symbol preserved.`,
+      });
+    } catch (error) {
+      setNotice({
+        tone: "error",
+        text: error instanceof Error ? error.message : "Logical color replacement failed.",
+      });
+    }
+  };
+
   const applyImagePattern = (next: PatternDocument): void => {
     setHistory((current) => commitDocument(current, next));
     setActiveColorId(next.colors[0]?.id ?? "");
@@ -596,6 +645,15 @@ export const App = (): React.JSX.Element => {
               })}
             </div>
           </section>
+
+          <ThreadCatalogPanel
+            activeColor={activeColor}
+            catalog={syntheticThreadCatalog}
+            matcher={threadColorMatcher}
+            onAssign={(productId) => assignThreadProduct(productId)}
+            onRemove={() => assignThreadProduct(null)}
+            onReplace={replaceLogicalColor}
+          />
 
           <section className="sidebar-section">
             <div className="section-title"><span>Stitch technique</span></div>

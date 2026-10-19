@@ -365,6 +365,7 @@ Order is an assistant-proposed evaluation sequence. The user-decided priority is
 - 2026-10-18 — `DefinitelyTyped/DefinitelyTyped`: accepted and marked `actively_using` for `@types/node` 24.10.9 in Milestone 1 tooling; no engine runtime dependency added
 - 2026-10-18 — COC.2 authorized and implemented React 19.3.1, React DOM 19.3.1, Vite 8.3.4, `@vitejs/plugin-react` 6.1.2, and React/DOM type declarations. React moved from `planned` to `actively_using`; the Vite repositories were accepted as `actively_using` with build and browser evidence
 - 2026-10-18 — COC.4.3 source research retained `makebead/craft-color-codes` as a catalog-data candidate only, pending upstream-rights and attribution approval. `sharlagelfand/dmc`, `adrianj/CrossStitchCreator`, `seanockert/rgb-to-dmc`, and `zilliah/embroidery-floss-api` were rejected as reusable catalog sources because clear, complete data provenance and redistribution rights were not established. No dependency or catalog data was adopted
+- 2026-10-18 — COC.4.3 Stage 1 implemented a dependency-free catalog/matcher foundation and an invented Cocolla synthetic fixture. No external catalog repository, DMC data, or new dependency was adopted, so the candidate and rejection statuses above remain unchanged
 
 ## Maintenance and identity
 

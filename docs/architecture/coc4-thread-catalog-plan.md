@@ -1,6 +1,6 @@
 # COC.4.3 thread catalog and color matching proposal
 
-**Status:** Proposed; implementation and data bundling are not authorized  
+**Status:** Stage 1 foundation authorized and implemented on `feat/coc4-thread-catalog-foundation`; verified DMC data remains gated
 **Prepared:** 2026-10-18  
 **Scope:** DMC source research, physical-thread assignments, and perceptual matching
 
@@ -90,7 +90,7 @@ Physical assignment and logical palette remapping are different operations:
 - **Assignment** records which product a user intends to buy; it does not change `PatternColorV1.rgb` or merge colors.
 - **Remapping** changes logical RGB values and therefore the visual pattern. It requires a separate, previewable, undoable command. Multiple logical colors must not be silently merged merely because they map to one product.
 
-The first slice implements assignment only. Explicit palette remapping and merge choices are later work.
+The first slice implements explicit one-color remapping: it changes the existing logical color's name and RGB while preserving its stable ID, chart symbol, stitch references, and isolation identity, then assigns the selected product in the same atomic revision. Color merging, bulk preview/remapping, and automatic replacement remain later work.
 
 ### Image conversion
 
@@ -109,13 +109,13 @@ Keep the current image quantizer independent of any vendor catalog. After normal
 ### Stage 1 — minimal vertical slice
 
 - Add pure sRGB/Lab and CIEDE2000 functions with published reference vectors.
-- Add a validated immutable local provider for the approved, source-stamped catalog artifact.
-- Add deterministic search, lookup, and nearest-match APIs with cached Lab values.
-- Add `color.set-thread-product` with revision, immutability, batch, serialization, and undo/redo tests.
-- Add a compact thread panel for product search, top candidate display, assign/replace/clear, attribution, and unresolved states.
-- Verify symbols, isolation, wheel/viewport behavior, JSON round trips, and image-created patterns remain unchanged except for explicit assignments.
+- Add a validated immutable local provider using only a clearly labeled synthetic development catalog until a source-stamped catalog artifact is approved.
+- Add deterministic search, lookup, and nearest-match APIs. Precomputed/cached Lab indexes remain a later optimization for a representative full catalog.
+- Add `color.set-thread-product` and `color.replace` with revision, immutability, atomic batch, serialization, and undo/redo tests.
+- Add a compact thread panel for product search, nearest-candidate display, assignment/clear, explicit logical-color replacement, catalog identity, and unresolved states.
+- Verify symbols, isolation, wheel/viewport behavior, JSON round trips, and image-created patterns remain unchanged except for explicit assignment or remapping actions.
 
-**Exit:** A user can select a logical color, find an approximate physical product, explicitly assign it, undo/redo, export/import, and still open the pattern when the catalog is absent.
+**Exit:** A user can select a logical color, find an approximate synthetic product, explicitly assign or remap it, undo/redo, export/import, and still open the pattern when the catalog is absent. This exit does not authorize or imply DMC data redistribution.
 
 ### Stage 2 — image-conversion assistance
 
@@ -129,10 +129,10 @@ Keep the current image quantizer independent of any vendor catalog. After normal
 - Add catalog-version comparison and drift reporting without rewriting documents.
 - Decide whether portable assignment snapshots require Pattern Document v2.
 
-### Stage 4 — additional providers and remapping
+### Stage 4 — additional providers and bulk remapping
 
 - Support other licensed or user-supplied catalogs through the same ports.
-- Add explicit palette-remap commands and, if authorized, catalog-constrained image quantization.
+- Extend the explicit single-color remap command with previewed bulk remapping/merge choices and, if authorized, catalog-constrained image quantization.
 - Keep provider data optional so the editor remains fully functional without any catalog.
 
 ## Validation plan
@@ -156,14 +156,14 @@ Keep the current image quantizer independent of any vendor catalog. After normal
 | Image conversion becomes vendor-coupled | Match only after generic quantization in the initial integration; keep constrained quantization separate and optional. |
 | ΔE00 is overinterpreted | Describe it as ranking approximate sRGB proxies, show alternatives, and keep the user's choice authoritative. |
 
-## Decisions requiring approval
+## Decision status and remaining approvals
 
-1. Whether to request written DMC redistribution permission before considering a community dataset.
-2. Whether MakeBead's CC BY 4.0 compilation and upstream provenance are acceptable for redistribution if DMC permission is unavailable.
-3. The exact catalog line and regional/current color set to support first.
-4. CIEDE2000 over sRGB-derived D50 Lab as the version 1 matcher.
-5. The Stage 1 assignment-only scope, with palette remapping and catalog-constrained quantization deferred.
-6. Whether a future portable assignment snapshot warrants Pattern Document v2 after the first slice.
+- Approved for Stage 1: CIEDE2000 over sRGB-derived D50 Lab as matcher version 1.
+- Approved for Stage 1: explicit single-logical-color remapping to a selected product while preserving color ID, chart symbol, stitch references, and isolation identity; bulk merging and catalog-constrained quantization remain deferred.
+- Still requires approval: whether to request written DMC redistribution permission before considering a community dataset.
+- Still requires approval: whether MakeBead's CC BY 4.0 compilation and upstream provenance are acceptable for redistribution if DMC permission is unavailable.
+- Still requires approval: the exact catalog artifact, product line, regional/current color set, version, attribution, trademark treatment, and update policy.
+- Still requires a later decision: whether a portable assignment snapshot warrants Pattern Document v2.
 
 ## Technical references
 

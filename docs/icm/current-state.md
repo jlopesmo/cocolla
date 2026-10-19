@@ -9,13 +9,13 @@
 - Milestone 1 was squash-merged to `main` through GitHub PR #1 at commit `8a679bccdae8e116af37aca23466da6f28db47d7`.
 - COC.2 implementation branch: `feat/coc2-visual-pattern-editor`.
 - COC.4.1 was squash-merged through GitHub PR #3 at commit `d0a4c594ad66444f046f1be341d24eb51f595a14`.
-- COC.4.2 was squash-merged through GitHub PR #4 at commit `2c35dd107dae67bd7c707d0b61eb98aacc6c7e1c`.
-- Post-merge review found that alpha values 1–15 were incorrectly treated as fully transparent. The two-file correction is validated on `fix/coc4-image-alpha-policy` in PR #5 but is not yet merged.
+- COC.4.2 was completed when GitHub PR #5 was squash-merged to `main` at commit `cea02eb66ef0cd8624cb3d54be4a656ebcadfb7e`.
+- COC.4.3 Stage 1 is implemented on `feat/coc4-thread-catalog-foundation` and is not merged.
 - Architecture approved on 2026-10-18.
 
 ## Status
 
-COC.1, COC.2/COC.2.1, COC.4.1, and the main COC.4.2 change are merged. COC.4.2 has one validated corrective PR pending: PR #5 makes every nonzero-alpha image cell visible as required by ADR 0006. COC.4.3 thread-catalog architecture and source research is proposed in `docs/architecture/coc4-thread-catalog-plan.md`; no catalog data, matcher, dependency, or thread-mapping UI has been implemented.
+COC.1, COC.2/COC.2.1, COC.4.1, and COC.4.2 are merged. COC.4.3 Stage 1 is implemented and validated on its isolated feature branch: catalog-neutral search/lookup/matching, portable thread assignments, explicit logical-color replacement, unresolved-entry behavior, and editor integration use a small synthetic catalog only. No verified DMC data, new dependency, backend, or persistence work is included.
 
 ### Implemented
 
@@ -45,9 +45,26 @@ COC.1, COC.2/COC.2.1, COC.4.1, and the main COC.4.2 change are merged. COC.4.2 h
 - Dependency-free deterministic median-cut color quantization and optional Floyd–Steinberg error diffusion in a Web Worker. Debounced request identifiers prevent stale results from replacing newer previews.
 - Native version 1 full-cross pattern generation with row/column-derived stable stitch IDs, unique curated default chart symbols, validated integer coordinates, editable history integration, automatic fit, and canonical JSON compatibility.
 - Transparent source regions remain empty fabric when an output cell is fully transparent; partial alpha is composited onto white before quantization. The policy is recorded in the generated document extension.
-- Provider-neutral thread-catalog and color-matcher TypeScript ports with required source, licensing, redistribution, catalog-version, product-ID, algorithm-version, and color-provenance fields. No physical catalog data is bundled.
+- Provider-neutral thread-catalog and color-matcher TypeScript ports with required source, licensing, redistribution, catalog-version, product-ID, algorithm-version, and color-provenance fields. No verified manufacturer catalog data is bundled.
+- UI-independent `packages/thread-catalog` implementation with catalog validation, deterministic code/name search and pagination, stable lookup, unresolved-assignment resolution, sRGB-to-D50-Lab conversion, and CIEDE2000 ranking with deterministic ties.
+- Revisioned `color.set-thread-product` and `color.replace` engine commands. The editor atomically remaps a logical color and assigns the chosen product while preserving color ID, chart symbol, stitches, layers, and geometry; existing snapshot history supplies undo/redo.
+- Searchable synthetic thread browser with catalog identity, codes, names, swatches, nearest-match ordering and ΔE00 display, assign/remove/replace actions, and explicit unresolved-product warnings. The 12 entries are invented Cocolla development fixtures and are not labeled as DMC or manufacturer products.
+- Pattern Document v1 JSON persistence for provider-qualified `threadProductId` values, including exact round trips when the referenced provider/product is unavailable. No schema migration was needed.
 
 ### Verification
+
+`npm run check` passed for COC.4.3 Stage 1 on 2026-10-18 using Node v24.14.0 on Windows x64:
+
+- Strict engine and web typechecks: passed.
+- Automated tests: 77 passed, 0 failed. New coverage includes all 34 published Sharma CIEDE2000 reference pairs, deterministic matching/ties, catalog validation/search/filter/pagination, assignment resolution and provider failure, unknown-ID JSON preservation, revision conflicts, invalid/atomic commands, immutable logical-color replacement, symbols, undo/redo, and export/import.
+- Existing 100,000-cell conversion, document-generation, and render-plan regressions completed in 54.0 ms, 165.0 ms, and 63.6 ms respectively during the final run.
+- The standalone engine benchmark completed at 10,000 stitches (1,918,294 serialized bytes; 41.9 ms serialize; 29.6 ms deserialize) and 100,000 stitches (19,330,231 bytes; 367.6 ms serialize; 184.7 ms deserialize). These are single-run development-machine observations, not service-level guarantees.
+- Production build passed. The generated web bundle was 303.49 kB JavaScript (94.73 kB gzip) and 20.97 kB CSS (4.96 kB gzip), excluding the source map.
+- Headless Microsoft Edge QA at 1440×1000 verified all 12 synthetic entries, code/name filtering, nearest-match ordering, assignment, atomic logical-color replacement, undo/redo, retained chart symbol and active logical-color identity, and zero captured browser errors. The final catalog/editor state was visually inspected.
+
+The matcher currently scans and converts the provider's products for each request. This is appropriate for the 12-entry synthetic fixture but has not been profiled against a verified full catalog; immutable per-version Lab caching is recommended before such a provider ships.
+
+### Prior milestone verification
 
 `npm run check` passed for COC.4.2 on 2026-10-18 using Node v24.14.0 on Windows x64:
 
@@ -66,4 +83,4 @@ For the PR #5 correction, `npm run check` passed with 67 tests and `npm run buil
 
 ### Not implemented
 
-Fastify API, authentication, PostgreSQL persistence/RLS, server or browser draft persistence, server worker jobs, printable or machine exports, progress tracking, deployment, and AI adapters are not implemented on this branch. Image import creates full-cross patterns only and does not preserve the source image in the portable document. DMC browsing and matching are intentionally deferred until an exact catalog source, license, attribution, redistribution policy, and matching algorithm are approved; no official color data is claimed or included.
+Fastify API, authentication, PostgreSQL persistence/RLS, server or browser draft persistence, server worker jobs, printable or machine exports, progress tracking, deployment, and AI adapters are not implemented on this branch. Image import creates full-cross patterns only and does not preserve the source image in the portable document. A verified DMC provider remains deferred until an exact catalog artifact, license/permission, attribution, trademark treatment, product-line scope, version, provenance, and update policy are approved; no official color data is claimed or included. Bulk palette remapping/merging, catalog-constrained image quantization, assignment snapshots beyond the stable ID, aliases/discontinued-product metadata, and catalog-version drift reports are also not implemented.

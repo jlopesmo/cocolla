@@ -36,7 +36,7 @@ This is a good fit for a private, self-hosted design application because it mini
 | Roadmap | `roadmap.md` contained placeholders. | Resolved with completed milestones and later work marked as requiring authorization. |
 | Product boundaries | Sharing, simultaneous collaboration, offline editing, mobile editing, supported import/export formats, pattern-size targets, account recovery, and retention are unspecified. | Treat them as non-goals until separately decided; set measurable size/browser targets before the canvas implementation is locked. |
 | Operations | Backup/restore objectives, remote-access model, TLS ownership, email availability, and monitoring/alerting are unspecified. | Decide before production deployment, not during initial implementation. |
-| Thread data | No thread-catalog source or license decision exists. | Begin with user-created thread products; import third-party catalogs only after provenance and license review. |
+| Thread data | Provider-neutral contracts and a synthetic-only catalog foundation exist, but no manufacturer dataset is approved. | Keep logical colors valid without providers; bundle third-party catalogs only after exact-artifact provenance, license/permission, attribution, trademark, version, and update review. |
 
 ICM was updated only after approval and verified Milestone 1 implementation results.
 
@@ -134,6 +134,8 @@ packages/
       routing/
       serialization/
   contracts/
+    src/
+  thread-catalog/
     src/
   db/
     migrations/

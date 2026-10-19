@@ -15,6 +15,8 @@ import {
   type StitchElementV1,
 } from "../../../../packages/engine/src/index.js";
 
+import type { ThreadProduct } from "../../../../packages/contracts/src/index.js";
+
 import type { CellPoint } from "./viewport.js";
 
 export const MIN_PATTERN_CELLS = 1;
@@ -254,6 +256,52 @@ export const setPatternColorSymbol = (
     type: "color.set-symbol",
     colorId,
     symbol,
+  });
+
+export const setPatternThreadProduct = (
+  document: PatternDocument,
+  colorId: string,
+  threadProductId: string | null,
+): PatternDocument =>
+  applyPatternCommand(document, {
+    type: "color.set-thread-product",
+    colorId,
+    threadProductId,
+  });
+
+export const replacePatternColor = (
+  document: PatternDocument,
+  colorId: string,
+  name: string,
+  rgb: string,
+): PatternDocument =>
+  applyPatternCommand(document, {
+    type: "color.replace",
+    colorId,
+    name,
+    rgb,
+  });
+
+export const replacePatternColorWithThread = (
+  document: PatternDocument,
+  colorId: string,
+  product: ThreadProduct,
+): PatternDocument =>
+  applyPatternCommands(document, {
+    baseRevision: document.revision,
+    commands: [
+      {
+        type: "color.replace",
+        colorId,
+        name: product.name,
+        rgb: product.color.value,
+      },
+      {
+        type: "color.set-thread-product",
+        colorId,
+        threadProductId: product.id,
+      },
+    ],
   });
 
 export const parsePatternJson = (serialized: string): ParsedPattern => {
