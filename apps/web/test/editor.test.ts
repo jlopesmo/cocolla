@@ -27,6 +27,10 @@ import {
   redoDocument,
   undoDocument,
 } from "../src/core/history.js";
+import {
+  isThreadCatalogResultCurrent,
+  threadCatalogResultKey,
+} from "../src/core/thread-catalog-state.js";
 import { pointerAction, traceCellsBetween } from "../src/core/interaction.js";
 
 const sequentialIds = (): (() => string) => {
@@ -182,6 +186,28 @@ test("custom color symbols participate in history and JSON export", () => {
   history = redoDocument(history);
   const imported = parsePatternJson(exportPatternJson(history.present)).document;
   assert.equal(imported.colors.find((color) => color.id === colorId)?.symbol, "●");
+});
+
+test("nearest thread results are bound to the active logical color", () => {
+  const firstKey = threadCatalogResultKey({
+    catalogId: "cocolla.synthetic",
+    catalogVersion: "1",
+    query: "",
+    view: "nearest",
+    activeColorId: "color:first",
+    activeColorRgb: "#112233",
+  });
+  const nextKey = threadCatalogResultKey({
+    catalogId: "cocolla.synthetic",
+    catalogVersion: "1",
+    query: "",
+    view: "nearest",
+    activeColorId: "color:next",
+    activeColorRgb: "#112233",
+  });
+
+  assert.equal(isThreadCatalogResultCurrent(firstKey, firstKey), true);
+  assert.equal(isThreadCatalogResultCurrent(firstKey, nextKey), false);
 });
 
 test("thread assignment and replacement participate in history and JSON export", () => {

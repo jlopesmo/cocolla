@@ -11,12 +11,22 @@ import {
   resolveThreadAssignment,
   type ThreadAssignmentResolution,
 } from "../../../../packages/thread-catalog/src/index.js";
+import {
+  isThreadCatalogResultCurrent,
+  threadCatalogResultKey,
+} from "../core/thread-catalog-state.js";
 
 type CatalogView = "catalog" | "nearest";
 
 interface CatalogResult {
   readonly product: ThreadProduct;
   readonly distance: number | null;
+}
+
+interface CatalogResultState {
+  readonly requestKey: string | null;
+  readonly results: readonly CatalogResult[];
+  readonly error: string | null;
 }
 
 interface ThreadCatalogPanelProps {
@@ -46,12 +56,27 @@ export const ThreadCatalogPanel = ({
 }: ThreadCatalogPanelProps): React.JSX.Element => {
   const [query, setQuery] = useState("");
   const [view, setView] = useState<CatalogView>("catalog");
-  const [results, setResults] = useState<readonly CatalogResult[]>([]);
+  const [resultState, setResultState] = useState<CatalogResultState>({
+    requestKey: null,
+    results: [],
+    error: null,
+  });
   const [resolution, setResolution] = useState<ThreadAssignmentResolution>({
     status: "unassigned",
   });
-  const [error, setError] = useState<string | null>(null);
   const activeThreadProductId = activeColor?.threadProductId ?? null;
+  const requestKey = threadCatalogResultKey({
+    catalogId: catalog.descriptor.id,
+    catalogVersion: catalog.descriptor.version,
+    query,
+    view,
+    activeColorId: activeColor?.id ?? null,
+    activeColorRgb: activeColor?.rgb ?? null,
+  });
+  const currentResultState = isThreadCatalogResultCurrent(
+    resultState.requestKey,
+    requestKey,
+  ) ? resultState : null;
   const currentResolution = isThreadAssignmentResolutionCurrent(
     resolution,
     activeThreadProductId,
@@ -74,19 +99,21 @@ export const ThreadCatalogPanel = ({
           : (await catalog.findProducts({ text: query, limit: 50 })).products
               .map((product) => ({ product, distance: null }));
         if (current) {
-          setResults(next);
-          setError(null);
+          setResultState({ requestKey, results: next, error: null });
         }
       } catch (loadError) {
         if (current) {
-          setResults([]);
-          setError(loadError instanceof Error ? loadError.message : "Catalog lookup failed.");
+          setResultState({
+            requestKey,
+            results: [],
+            error: loadError instanceof Error ? loadError.message : "Catalog lookup failed.",
+          });
         }
       }
     };
     void load();
     return () => { current = false; };
-  }, [activeColor?.rgb, catalog, matcher, query, view]);
+  }, [activeColor, catalog, matcher, query, requestKey, view]);
 
   useEffect(() => {
     let current = true;
@@ -161,9 +188,11 @@ export const ThreadCatalogPanel = ({
         </select>
       </label>
 
-      {error === null ? null : <p className="catalog-error">{error}</p>}
+      {currentResultState?.error === null || currentResultState === null
+        ? null
+        : <p className="catalog-error">{currentResultState.error}</p>}
       <div className="thread-results" aria-label="Thread catalog results">
-        {results.map(({ product, distance }) => {
+        {(currentResultState?.results ?? []).map(({ product, distance }) => {
           const assigned = product.id === activeColor?.threadProductId;
           return (
             <article className={`thread-result ${assigned ? "assigned" : ""}`} key={product.id}>
@@ -188,7 +217,9 @@ export const ThreadCatalogPanel = ({
             </article>
           );
         })}
-        {results.length === 0 && error === null ? (
+        {currentResultState === null ? (
+          <p className="empty-note">Loading thread catalog…</p>
+        ) : currentResultState.results.length === 0 && currentResultState.error === null ? (
           <p className="empty-note">No catalog threads match this filter.</p>
         ) : null}
       </div>

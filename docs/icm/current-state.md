@@ -56,10 +56,10 @@ COC.1, COC.2/COC.2.1, COC.4.1, and COC.4.2 are merged. COC.4.3 Stage 1 is implem
 `npm run check` passed for COC.4.3 Stage 1 on 2026-10-18 using Node v24.14.0 on Windows x64:
 
 - Strict engine and web typechecks: passed.
-- Automated tests: 78 passed, 0 failed. New coverage includes all 34 published Sharma CIEDE2000 reference pairs, deterministic matching/ties, catalog validation/search/filter/pagination, assignment resolution, stale-resolution suppression, provider failure, unknown-ID JSON preservation, revision conflicts, invalid/atomic commands, immutable logical-color replacement, symbols, undo/redo, and export/import.
-- Existing 100,000-cell conversion, document-generation, and render-plan regressions completed in 75.2 ms, 175.7 ms, and 63.7 ms respectively during the final integration run.
-- The standalone engine benchmark completed at 10,000 stitches (1,918,294 serialized bytes; 46.3 ms serialize; 28.2 ms deserialize) and 100,000 stitches (19,330,231 bytes; 457.1 ms serialize; 218.3 ms deserialize). These are single-run development-machine observations, not service-level guarantees.
-- Production build passed. The generated web bundle was 303.64 kB JavaScript (94.80 kB gzip) and 20.97 kB CSS (4.96 kB gzip), excluding the source map.
+- Automated tests: 79 passed, 0 failed. New coverage includes all 34 published Sharma CIEDE2000 reference pairs, deterministic matching/ties, catalog validation/search/filter/pagination, assignment resolution, stale assignment and nearest-result suppression, provider failure, unknown-ID JSON preservation, revision conflicts, invalid/atomic commands, immutable logical-color replacement, symbols, undo/redo, and export/import.
+- Existing 100,000-cell conversion, document-generation, and render-plan regressions completed in 53.6 ms, 152.2 ms, and 73.7 ms respectively during the final integration run.
+- The standalone engine benchmark completed at 10,000 stitches (1,918,294 serialized bytes; 38.5 ms serialize; 24.7 ms deserialize) and 100,000 stitches (19,330,231 bytes; 345.6 ms serialize; 208.0 ms deserialize). These are single-run development-machine observations, not service-level guarantees.
+- Production build passed. The generated web bundle was 304.17 kB JavaScript (94.96 kB gzip) and 20.97 kB CSS (4.96 kB gzip), excluding the source map.
 - Headless Microsoft Edge QA at 1440×1000 verified all 12 synthetic entries, code/name filtering, nearest-match ordering, assignment, atomic logical-color replacement, undo/redo, retained chart symbol and active logical-color identity, and zero captured browser errors. The final catalog/editor state was visually inspected.
 
 The matcher currently scans and converts the provider's products for each request. This is appropriate for the 12-entry synthetic fixture but has not been profiled against a verified full catalog; immutable per-version Lab caching is recommended before such a provider ships.
