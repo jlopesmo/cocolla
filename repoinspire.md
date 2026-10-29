@@ -4,7 +4,7 @@
 **Project:** [jlopesmo/cocolla](https://github.com/jlopesmo/cocolla)  
 **Project ID:** `cocolla`  
 **Master catalog:** [jlopesmo/repoinspire](https://github.com/jlopesmo/repoinspire)  
-**Last register review:** 2026-10-18
+**Last register review:** 2026-10-28
 
 ## Purpose and authority
 
@@ -357,8 +357,38 @@ Order is an assistant-proposed evaluation sequence. The user-decided priority is
 - **Implementation or usage references:** none recorded
 - **Upstream aliases / fork relationship:** `sharlagelfand/dmc` explicitly derives its data from `adrianj/CrossStitchCreator`; other lineage claims remain as documented in their own repositories
 
+### chenglou/pretext
+
+- **Repository ID:** `chenglou/pretext`
+- **Repository URL:** https://github.com/chenglou/pretext
+- **Reference classification:** `accepted_reference`
+- **Added:** 2026-10-28
+- **Last reviewed:** 2026-10-28 (official README and root license; no browser/runtime performance tests)
+- **Why relevant:** Optional Canvas text measurement for labels, annotations and help/legend overlays around stitch/grid editing.
+- **Adoption status:** `candidate`
+- **Status decision date:** not decided
+- **Status decision and reason:** retained as an approved reference only; no installation or implementation authorized
+- **Decision evidence:** no project adoption decision recorded
+- **Proposed use type:** `inspiration`
+- **Selected use type:** undecided
+- **Proposed evaluation rank:** 10
+- **Proposed evaluation priority:** `future_reference`
+- **Proposal rationale:** Defer behind stitch rendering, image import, selection and thread workflows; use native Canvas measurement unless complex multiline layout proves necessary.
+- **User-decided project priority:** P3 · Low · reference priority approved 2026-10-28 (not an adoption or schedule decision)
+- **Priority decision date and evidence:** 2026-10-28; user approval in ChatGPT; no public decision URL
+- **Reported license:** MIT, with bundled Chromium/WebKit-origin notices requiring preservation
+- **License review status:** `documentation_reviewed`; checked date: 2026-10-28
+- **License evidence and notes:** https://github.com/chenglou/pretext/blob/main/LICENSE. Root license inspected; upstream/third-party notices must be retained; dependencies and future versions require review
+- **Constraints / incompatibilities:** Pretext does not map pixels to stitches or improve embroidery color quantization, symbol placement semantics, database persistence or export. No architecture or dependency choice follows from this reference.
+- **Research evidence:** https://github.com/chenglou/pretext/blob/main/README.md; https://github.com/chenglou/pretext/blob/main/LICENSE
+- **Possible later use notes:** Possible later label-layout inspiration only; not a stitch engine or approved dependency.
+- **Adoption scope:** none approved
+- **Implementation or usage references:** none recorded
+- **Upstream aliases / fork relationship:** canonical `chenglou/pretext`; no verified aliases or fork relationship recorded
+
 ## Decision history
 
+- 2026-10-28 — `chenglou/pretext`: user approved retention as `accepted_reference` with P3 · Low reference priority. Proposed evaluation rank 10 appended, preserving earlier rankings. Remains `candidate`: no selected use, dependency, implementation, or roadmap commitment.
 - 2026-10-18 — `storytold/artcraft`: carried into this register as `candidate_reference`. Retained for future exploration; no install or implementation decision. Proposed rank 1 is an assistant assessment; user-decided priority and selected use remain unset
 - 2026-10-18 — `facebook/react`, `microsoft/TypeScript`, `fastify/fastify`, `nodejs/node`, `postgres/postgres`, and `docker/compose`: entered bounded COC.1 architecture evaluation. All remain unapproved candidates; no installation, selected version, or implementation use is authorized
 - 2026-10-18 — COC.1 architecture approved: React, Fastify, PostgreSQL, and Compose moved to `planned`; TypeScript 5.9.3 and Node 24 LTS moved to `actively_using` with Milestone 1 evidence
