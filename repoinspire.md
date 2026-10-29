@@ -386,8 +386,38 @@ Order is an assistant-proposed evaluation sequence. The user-decided priority is
 - **Implementation or usage references:** none recorded
 - **Upstream aliases / fork relationship:** canonical `chenglou/pretext`; no verified aliases or fork relationship recorded
 
+### google/elephant-goldfish-model
+
+- **Repository ID:** `google/elephant-goldfish-model`
+- **Repository URL:** https://github.com/google/elephant-goldfish-model
+- **Reference classification:** `accepted_reference`
+- **Added:** 2026-10-28
+- **Last reviewed:** 2026-10-28 (pinned official README, docs/harnesses, privacy, and LICENSE; no workflow execution)
+- **Why relevant:** Independent critiques of image-to-stitch conversion, color quantization, edit history, document import and data/persistence design proposals.
+- **Adoption status:** `candidate`
+- **Status decision date:** not decided
+- **Status decision and reason:** Reference retained for future evaluation, not an implementation or installation decision
+- **Decision evidence:** user approved RepoInspire reference retention on 2026-10-28; no public adoption evidence
+- **Proposed use type:** `inspiration`
+- **Selected use type:** undecided
+- **Proposed evaluation rank:** 11
+- **Proposed evaluation priority:** `future_reference`
+- **Proposal rationale:** Apply only to complex engine/data decisions; prioritize verified stitch features and protected-detail image-import tests over new process tooling.
+- **User-decided project priority:** not set; P2 · Medium (secondary proposal)
+- **Priority decision date and evidence:** not set; secondary-app priority is a research proposal
+- **Reported license:** Apache-2.0
+- **License review status:** `documentation_reviewed`; checked date: 2026-10-28
+- **License evidence and notes:** https://github.com/google/elephant-goldfish-model/blob/f0ba151b252c9abf1318d9fe857a43265d06de89/LICENSE. Root license and public docs inspected; not a legal or compatibility sign-off
+- **Constraints / incompatibilities:** Do not modify the Canvas editor, stitch/color semantics, image data or backend plans. No package installation or provider data disclosure approved. EGM's `egm-review` requires independent fresh-context subagents; without them it stops. The host account/model handles data, permissions and retention; EGM is not a separate privacy/security boundary. Read entire plugin and companion personas; skill-only copying breaks it.
+- **Research evidence:** https://github.com/google/elephant-goldfish-model/blob/f0ba151b252c9abf1318d9fe857a43265d06de89/README.md; https://github.com/google/elephant-goldfish-model/blob/f0ba151b252c9abf1318d9fe857a43265d06de89/docs/harnesses.md; https://github.com/google/elephant-goldfish-model/blob/f0ba151b252c9abf1318d9fe857a43265d06de89/docs/privacy.md
+- **Possible later use notes:** Design specification reviews, selective `egm-review`/`egm-drift-report` comparison, with existing project ICM/ADR and QA gates maintained.
+- **Adoption scope:** none approved; no installation or changes to coding-agent configuration
+- **Implementation or usage references:** none recorded
+- **Upstream aliases / fork relationship:** canonical `google/elephant-goldfish-model`; no aliases verified, and upstream metadata identifies a non-fork repository
+
 ## Decision history
 
+- 2026-10-28 — `google/elephant-goldfish-model`: approved as an `accepted_reference` for RepoInspire; secondary project application proposed, without user-selected project priority. Proposed rank 11 appended; existing rankings and adoption decisions unchanged. No plugins, packages, hooks or runtime changes approved.
 - 2026-10-28 — `chenglou/pretext`: user approved retention as `accepted_reference` with P3 · Low reference priority. Proposed evaluation rank 10 appended, preserving earlier rankings. Remains `candidate`: no selected use, dependency, implementation, or roadmap commitment.
 - 2026-10-18 — `storytold/artcraft`: carried into this register as `candidate_reference`. Retained for future exploration; no install or implementation decision. Proposed rank 1 is an assistant assessment; user-decided priority and selected use remain unset
 - 2026-10-18 — `facebook/react`, `microsoft/TypeScript`, `fastify/fastify`, `nodejs/node`, `postgres/postgres`, and `docker/compose`: entered bounded COC.1 architecture evaluation. All remain unapproved candidates; no installation, selected version, or implementation use is authorized
