@@ -12,7 +12,7 @@
 
 ## In progress
 
-- App Hub static export pilot (`feat/apphub-export`, [ADR 0009](../decisions/0009-app-hub-static-export.md)): configurable base path, `npm run package:apphub`, and the production worker-bundling fix. Verified locally behind the App Hub PHP gate. Uploaded to staging as Passcode (App Hub e2e 113/113 with it present). Next: the staging browser check with the owner's tester passcode. Merging needs approval.
+- App Hub static export pilot (`feat/apphub-export`, [ADR 0009](../decisions/0009-app-hub-static-export.md)): configurable base path, `npm run package:apphub`, and the production worker-bundling fix. Verified locally behind the App Hub PHP gate. Uploaded to staging as Passcode (App Hub e2e 113/113 with it present). The real-host browser check found the upload had flattened `assets/` (an upload issue, not code). Next: the owner moves the three files into `cocolla/assets/`, then re-run the browser check. Merging needs approval.
 
 ## Next — requires separate authorization
 

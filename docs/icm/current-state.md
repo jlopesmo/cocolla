@@ -85,7 +85,13 @@ Verified 2026-11-22 on Node v24.14.0, Windows x64:
   - The App Hub lists it as `cocolla:passcode:0.0.0-a63154e`.
   - Locked paths redirect to the unlock page, and the icon is public.
   - The App Hub's full staging e2e passed 113/113 with Cocolla present (discovered in the protected folder, valid).
-- **Not verified yet:** the editor functions on staging (LiteSpeed/CDN). `APPHUB_PASSCODE=… node scripts/apphub-browser-check.mjs https://apphub-staging.lopesmoreno.com/apps/projects/cocolla/` is pending the owner's tester passcode.
+- **Real-host browser check (2026-11-22 13:55–14:01 EST, owner's tester passcode):**
+  - unlock 200 with a `Secure; HttpOnly` app cookie; `index.html` served.
+  - **FAIL: the editor did not start.** `assets/index-CRc9d9De.js`, `assets/index-CbvfTLp1.css` and the worker returned 404, because the upload had flattened `assets/` into the package root on the server.
+  - Not a Cocolla defect: the files are complete there, and the App Hub's `apphub-upload-verify.mjs` confirms it.
+  - Fix (owner): move the three files into `apphub-staging-apps/cocolla/assets/`, then re-run the check.
+- `apphub-browser-check.mjs` now reports on any timeout what the browser shows (URL, title, text), plus failed requests, console errors and requests outside the base. That is how this was diagnosed.
+- **Not verified yet:** the editor functions on Hostinger (LiteSpeed/CDN), pending the corrected upload.
 
 ### Verification
 

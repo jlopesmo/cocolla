@@ -75,11 +75,13 @@ async function main() {
   const waitFor = async (expression, label, ms = 15000) => {
     const t0 = Date.now();
     while (Date.now() - t0 < ms) { if (await evaluate(expression).catch(() => false)) return true; await sleep(100); }
-    throw new Error(`timeout waiting for ${label}`);
+    // Report what the browser actually shows (URL, title, visible text), not just "timeout".
+    const where = await evaluate(`JSON.stringify({ url: location.href, title: document.title, text: (document.body?.innerText || '').replace(/\s+/g, ' ').slice(0, 300) })`).catch((e) => `unavailable: ${e.message}`);
+    throw new Error(`timeout waiting for ${label}; page: ${where}`);
   };
 
   // ── event capture ──
-  const failed = [], errors = [], outside = [];
+  failed.length = 0; errors.length = 0; outside.length = 0;
   listeners.push((m) => {
     if (m.method === "Network.requestWillBeSent") {
       const u = m.params.request.url;
@@ -201,7 +203,13 @@ async function main() {
   ws.close();
 }
 
-try { await main(); } catch (e) { fail(e.message); } finally {
+const failed = [], errors = [], outside = [];
+try { await main(); } catch (e) {
+  fail(e.message);
+  if (failed.length) console.log(`INFO  failed requests: ${[...new Set(failed)].slice(0, 10).join(", ")}`);
+  if (errors.length) console.log(`INFO  console errors: ${[...new Set(errors)].slice(0, 5).join(" | ")}`);
+  if (outside.length) console.log(`INFO  requests outside the base: ${[...new Set(outside)].slice(0, 10).join(", ")}`);
+} finally {
   chrome.kill();
   await sleep(500);
   fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
