@@ -18,7 +18,9 @@ Open `http://127.0.0.1:5173/`. The editor automatically fits patterns to the wor
 - `npm run dev` — start the Vite development server.
 - `npm run build` — compile the engine and build the production web bundle.
 - `npm test` — run engine and editor tests.
-- `npm run check` — run strict typechecking, all tests, and engine benchmarks.
+- `npm run check` — run strict typechecking, all tests, the export regression tests, and engine benchmarks.
+- `npm run package:apphub` — build the static LopesMoreno App Hub package in `dist/apphub/cocolla/` (base `/apps/projects/cocolla/`, no source maps; see [ADR 0009](docs/decisions/0009-app-hub-static-export.md)).
+- `node scripts/apphub-browser-check.mjs <url>` — headless-Chrome functional check of a served build.
 
 Architecture and verified implementation status are recorded under `docs/architecture/`, `docs/decisions/`, and `docs/icm/`.
 

@@ -10,6 +10,10 @@
 - COC.4.2 — bounded local PNG/JPEG/WebP conversion into native editable full-cross patterns, direct pointer-anchored wheel zoom, and an expanded vector-backed chart-symbol library; completed after PR #5 was squash-merged at `cea02eb66ef0cd8624cb3d54be4a656ebcadfb7e`.
 - COC.4.3 Stage 1 — catalog-independent searchable synthetic provider, deterministic CIEDE2000 matching, portable assignments, explicit logical-color replacement, unresolved-entry handling, and editor integration; implemented on `feat/coc4-thread-catalog-foundation` pending review.
 
+## In progress
+
+- App Hub static export pilot (`feat/apphub-export`, [ADR 0009](../decisions/0009-app-hub-static-export.md)): configurable base path, `npm run package:apphub`, and the production worker-bundling fix. Verified locally behind the App Hub PHP gate. Next: owner upload to `apphub-staging-apps/cocolla/` (Passcode) and a staging browser check. Merging needs approval.
+
 ## Next — requires separate authorization
 
 - Private persistence vertical slice with Fastify, PostgreSQL, authentication, ownership enforcement, RLS, migrations, and cross-user isolation tests. This was previously numbered Milestone 2 but was explicitly deferred behind the authorized COC.2 editor.

@@ -10,6 +10,7 @@ The application architecture was approved as Cocolla's initial technical directi
 - [ADR 0006 — Local image-to-pattern conversion](../decisions/0006-local-image-to-pattern-conversion.md)
 - [ADR 0007 — Wheel zoom, chart-symbol library, and thread-catalog boundary](../decisions/0007-wheel-zoom-symbol-library-and-thread-catalog-boundary.md)
 - [ADR 0008 — Thread catalog foundation and palette management](../decisions/0008-thread-catalog-foundation-and-palette-management.md)
+- [ADR 0009 — App Hub static export and production worker bundling](../decisions/0009-app-hub-static-export.md)
 - [COC.3 private-persistence breakdown](coc3-private-persistence-plan.md)
 - [COC.4.3 thread-catalog and color-matching proposal](coc4-thread-catalog-plan.md)
 

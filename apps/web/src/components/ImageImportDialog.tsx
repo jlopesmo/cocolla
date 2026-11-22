@@ -38,8 +38,6 @@ interface ImageImportDialogProps {
   readonly onCancel: () => void;
 }
 
-const workerUrl = new URL("../workers/image-conversion.worker.ts", import.meta.url);
-
 export const ImageImportDialog = ({
   currentDocument,
   isDirty,
@@ -121,7 +119,12 @@ export const ImageImportDialog = ({
       URL.revokeObjectURL(sourcePreviewRef.current);
     }
     sourcePreviewRef.current = decoded.previewUrl;
-    const worker = new Worker(workerUrl, { type: "module" });
+    // Keep `new Worker(new URL(...), ...)` in ONE expression: only this form makes Vite
+    // bundle the worker as a chunk. A separately declared URL is treated as a plain asset
+    // and production builds then inlined the raw TypeScript source as a data: URL.
+    const worker = new Worker(new URL("../workers/image-conversion.worker.ts", import.meta.url), {
+      type: "module",
+    });
     workerRef.current = worker;
     worker.onmessage = (event: MessageEvent<ImageConversionWorkerResponse>): void => {
       const response = event.data;
