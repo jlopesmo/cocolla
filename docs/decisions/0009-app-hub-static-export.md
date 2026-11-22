@@ -33,7 +33,7 @@ While verifying this, a pre-existing production defect was found. `ImageImportDi
   - that invalid base/source-map values are rejected;
   - that the verifier catches broken packages.
 - `scripts/apphub-browser-check.mjs <url>` drives headless Chrome for a served build:
-  - editor load, drawing, JSON export/import, image import through the worker, reload, SPA deep link;
+  - editor load, drawing, JSON export/import, image import through the worker (including that the worker script is the bundled chunk under the base's `assets/`), reload, SPA deep link;
   - no failed requests, console errors or requests outside the base.
   - It is a manual QA script, because it needs a browser and a server.
   - For an App Hub Passcode app it unlocks first with `APPHUB_PASSCODE` (read from the environment only, never printed).

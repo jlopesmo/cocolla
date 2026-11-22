@@ -81,12 +81,14 @@ async function main() {
   };
 
   // ── event capture ──
-  failed.length = 0; errors.length = 0; outside.length = 0;
+  failed.length = 0; errors.length = 0; outside.length = 0; workers.length = 0;
   listeners.push((m) => {
     if (m.method === "Network.requestWillBeSent") {
       const u = m.params.request.url;
       if (!/^(data|blob):/.test(u) && !(u.startsWith(app.origin + app.pathname))) outside.push(u);
     }
+    // Dedicated workers are separate DevTools targets: their script URL comes from auto-attach.
+    if (m.method === "Target.attachedToTarget" && m.params.targetInfo.type === "worker") workers.push(m.params.targetInfo.url);
     if (m.method === "Network.responseReceived" && m.params.response.status >= 400) failed.push(`${m.params.response.status} ${m.params.response.url}`);
     if (m.method === "Network.loadingFailed" && !m.params.canceled) failed.push(`failed ${m.params.errorText}`);
     if (m.method === "Runtime.exceptionThrown") errors.push(m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text);
@@ -95,6 +97,7 @@ async function main() {
     if (m.method === "Page.javascriptDialogOpening") send("Page.handleJavaScriptDialog", { accept: true }).catch(() => {});
   });
   await send("Network.enable"); await send("Runtime.enable"); await send("Page.enable"); await send("Log.enable"); await send("DOM.enable");
+  await send("Target.setAutoAttach", { autoAttach: true, waitForDebuggerOnStart: false, flatten: true });
   let cookie = opt("--cookie");
   // App Hub Passcode app: unlock with APPHUB_PASSCODE (env only; never printed) to get the
   // app-scoped cookie, exactly as the unlock page does.
@@ -181,6 +184,9 @@ async function main() {
   await setFile('input[type=file][accept^="image/"]', imagePath);
   await waitFor(`[...document.querySelectorAll('.image-import-dialog button')].some(b => b.textContent.trim() === 'Create pattern' && !b.disabled)`, "worker conversion result", 20000);
   pass("Web Worker converted the image (preview ready)");
+  // The worker must be the bundled chunk served from the app's assets/ (not inlined as a data: URL).
+  const workerScripts = workers.filter((u) => u.startsWith(app.origin + app.pathname + "assets/") && /worker[^/]*\.js(\?|$)/.test(u));
+  check(workerScripts.length > 0, `Web Worker script loaded from ${app.pathname}assets/${workerScripts.length ? ` (${new URL(workerScripts[0]).pathname.split("/").pop()})` : `: worker targets seen: ${workers.length ? workers.map((u) => u.slice(0, 80)).join(", ") : "none"}`}`);
   await clickButton("Create pattern", "document.querySelector('.image-import-dialog')");
   await sleep(300);
   if (await evaluate(`[...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Replace pattern')`)) await clickButton("Replace pattern");
@@ -203,7 +209,7 @@ async function main() {
   ws.close();
 }
 
-const failed = [], errors = [], outside = [];
+const failed = [], errors = [], outside = [], workers = [];
 try { await main(); } catch (e) {
   fail(e.message);
   if (failed.length) console.log(`INFO  failed requests: ${[...new Set(failed)].slice(0, 10).join(", ")}`);

@@ -91,7 +91,22 @@ Verified 2026-11-22 on Node v24.14.0, Windows x64:
   - Not a Cocolla defect: the files are complete there, and the App Hub's `apphub-upload-verify.mjs` confirms it.
   - Fix (owner): move the three files into `apphub-staging-apps/cocolla/assets/`, then re-run the check.
 - `apphub-browser-check.mjs` now reports on any timeout what the browser shows (URL, title, text), plus failed requests, console errors and requests outside the base. That is how this was diagnosed.
-- **Not verified yet:** the editor functions on Hostinger (LiteSpeed/CDN), pending the corrected upload.
+- **Corrected upload (owner, before 15:00 EST):** the three files were moved into `apphub-staging-apps/cocolla/assets/`. Passcode and settings unchanged.
+- **Real-host re-verification (2026-11-22 ~15:00–15:15 EST): VERIFIED, ALL PASS.**
+  - App Hub `apphub-upload-verify.mjs`: directory lists `passcode, version 0.0.0-a63154e`; unlock PASS; all 6 files present and byte-identical to `dist/apphub/cocolla/`.
+  - `apphub-browser-check.mjs` against `https://apphub-staging.lopesmoreno.com/apps/projects/cocolla/`: 21/21 PASS. Covered:
+    - unlock 200 with a `Secure; HttpOnly` cookie;
+    - editor startup, title, JS/CSS from `/apps/projects/cocolla/assets/` and the stylesheet applied;
+    - drawing (0 → 4 stitches);
+    - Export JSON (valid 4-stitch document), then Import JSON restoring it after a new blank pattern;
+    - Import image converted through the Web Worker (4,240-stitch pattern);
+    - the worker script `image-conversion.worker-HE8avWgo.js` loaded from `assets/`;
+    - browser refresh and an SPA deep link;
+    - no failed requests, no console errors, no request outside `/apps/projects/cocolla/`.
+  - The passcode was read from the local git-ignored file and passed only through the environment; it was not reset, printed or logged.
+- **Browser check now asserts the worker file.** It previously inferred the worker from a successful conversion (there is no main-thread fallback). It now also requires a dedicated-worker target whose script is a `*worker*.js` under the app's `assets/`, detected through DevTools auto-attach. The page's Network domain does not report worker script loads, and a first attempt using it failed locally for that reason. Verified locally behind the real PHP gate (21/21) and on Hostinger (21/21).
+- `npm run check` after that change: 79/79 tests plus 4/4 export tests, exit 0.
+- **Not verified:** other browsers (only headless Chrome), real tester devices, and behaviour under load.
 
 ### Verification
 
