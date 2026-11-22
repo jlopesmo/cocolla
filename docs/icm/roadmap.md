@@ -8,11 +8,12 @@
 - COC.2.1 — actual-container fit/centering and engine-backed 90°/180° pattern rotation.
 - COC.4.1 — stitch appearance controls, portable editable chart symbols, multi-color isolation, and occupied-cell tint; squash-merged through PR #3.
 - COC.4.2 — bounded local PNG/JPEG/WebP conversion into native editable full-cross patterns, direct pointer-anchored wheel zoom, and an expanded vector-backed chart-symbol library; completed after PR #5 was squash-merged at `cea02eb66ef0cd8624cb3d54be4a656ebcadfb7e`.
-- COC.4.3 Stage 1 — catalog-independent searchable synthetic provider, deterministic CIEDE2000 matching, portable assignments, explicit logical-color replacement, unresolved-entry handling, and editor integration; implemented on `feat/coc4-thread-catalog-foundation` pending review.
+- COC.4.3 Stage 1 — catalog-independent searchable synthetic provider, deterministic CIEDE2000 matching, portable assignments, explicit logical-color replacement, unresolved-entry handling, and editor integration; squash-merged through PR #6 at `1a61bf2`.
+- App Hub static export pilot — merged through PR #9 (`9433c2e`) ([ADR 0009](../decisions/0009-app-hub-static-export.md)): configurable base path, `npm run package:apphub`, and the production worker-bundling fix. Verified locally behind the App Hub PHP gate. Uploaded to staging as Passcode (App Hub e2e 113/113 with it present). The first real-host browser check found the upload had flattened `assets/` (an upload issue, not code). After the owner corrected it, the upload verification matched all 6 files and the real-host browser check passed 21/21 on 2026-11-22 (editor, drawing, JSON export/import, image conversion through the Web Worker, refresh, deep link, no browser errors). Merged to `main` on 2026-11-22 through PR #9 (squash, `9433c2e`). Publishing on the production App Hub needs owner approval.
 
 ## In progress
 
-- App Hub static export pilot (`feat/apphub-export`, [ADR 0009](../decisions/0009-app-hub-static-export.md)): configurable base path, `npm run package:apphub`, and the production worker-bundling fix. Verified locally behind the App Hub PHP gate. Uploaded to staging as Passcode (App Hub e2e 113/113 with it present). The first real-host browser check found the upload had flattened `assets/` (an upload issue, not code). After the owner corrected it, the upload verification matched all 6 files and the real-host browser check passed 21/21 on 2026-11-22 (editor, drawing, JSON export/import, image conversion through the Web Worker, refresh, deep link, no browser errors). Ready for release review. Merging `feat/apphub-export` and any production App Hub publication need owner approval.
+- None.
 
 ## Next — requires separate authorization
 
