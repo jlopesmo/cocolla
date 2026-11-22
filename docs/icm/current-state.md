@@ -51,6 +51,63 @@ COC.1, COC.2/COC.2.1, COC.4.1, and COC.4.2 are merged. COC.4.3 Stage 1 is implem
 - Searchable synthetic thread browser with catalog identity, codes, names, swatches, nearest-match ordering and ΔE00 display, assign/remove/replace actions, and explicit unresolved-product warnings. The 12 entries are invented Cocolla development fixtures and are not labeled as DMC or manufacturer products.
 - Pattern Document v1 JSON persistence for provider-qualified `threadProductId` values, including exact round trips when the referenced provider/product is unavailable. No schema migration was needed.
 
+### App Hub static export pilot (branch `feat/apphub-export`, not merged; [ADR 0009](../decisions/0009-app-hub-static-export.md))
+
+Verified 2026-11-22 on Node v24.14.0, Windows x64:
+
+- **Pre-existing production defect fixed.** Every production build had inlined the raw TypeScript image-conversion worker as a `data:video/mp2t` URL, so image import never completed outside `npm run dev`. The worker is now created as `new Worker(new URL(...))` (one expression, `worker.format: "es"`) and is emitted as a 4.5 kB chunk.
+  - A browser check against the unfixed code, built as a package and served through the App Hub gate, timed out at image conversion. The fixed build converts.
+- **Configurable build:** `COCOLLA_BASE` / `COCOLLA_SOURCEMAP` / `COCOLLA_OUT_DIR`, with the previous defaults. `npm run package:apphub` writes `dist/apphub/cocolla/`:
+  - `index.html`, `assets/` (JS, CSS, worker), `app.json`, `icon.svg`;
+  - 6 files, about 321 KiB; no source maps, TypeScript or dev files.
+- **`npm run check`: passed.**
+  - Typecheck OK.
+  - 79/79 existing tests.
+  - 4/4 new `test:export` regression tests (real builds: default build unchanged, App Hub build under `/apps/projects/cocolla/`, invalid options rejected, verifier mutation check).
+  - Benchmarks OK.
+  - Default production build: 302.22 kB JS (93.75 kB gzip) + 20.97 kB CSS + 4.50 kB worker, plus source maps as before.
+- **Served through the App Hub's real PHP gate** (`apphub-package-check.mjs`, App Hub repo, PHP 8.1.34 and 8.3.37), protected folder, Passcode:
+  - App Hub audit and `app.json` valid;
+  - locked page → unlock redirect, locked asset 403, icon public;
+  - after unlock, all 6 files byte-identical with correct MIME types; worker URL resolves; SPA deep link serves the entry page; missing file 404.
+- **Headless Chrome functional check** (`scripts/apphub-browser-check.mjs`) passed against:
+  - (a) the package behind that gate, with the unlock cookie;
+  - (b) the default production build via `vite preview`;
+  - (c) the dev server.
+- **That browser check covers:**
+  - the editor loads;
+  - drawing places stitches;
+  - Export JSON yields a valid document and Import JSON restores it after a new blank pattern;
+  - Import image converts through the Web Worker (a 24×16 PNG gave a 4,240-stitch pattern);
+  - reload and an SPA deep link work;
+  - no failed requests, console errors, or requests outside the base path (no server or database).
+- **Hostinger staging (2026-11-22 13:40–13:43 EST):** the owner uploaded the package to the App Hub's protected `apphub-staging-apps/cocolla/` and set it to Passcode.
+  - The App Hub lists it as `cocolla:passcode:0.0.0-a63154e`.
+  - Locked paths redirect to the unlock page, and the icon is public.
+  - The App Hub's full staging e2e passed 113/113 with Cocolla present (discovered in the protected folder, valid).
+- **Real-host browser check (2026-11-22 13:55–14:01 EST, owner's tester passcode):**
+  - unlock 200 with a `Secure; HttpOnly` app cookie; `index.html` served.
+  - **FAIL: the editor did not start.** `assets/index-CRc9d9De.js`, `assets/index-CbvfTLp1.css` and the worker returned 404, because the upload had flattened `assets/` into the package root on the server.
+  - Not a Cocolla defect: the files are complete there, and the App Hub's `apphub-upload-verify.mjs` confirms it.
+  - Fix (owner): move the three files into `apphub-staging-apps/cocolla/assets/`, then re-run the check.
+- `apphub-browser-check.mjs` now reports on any timeout what the browser shows (URL, title, text), plus failed requests, console errors and requests outside the base. That is how this was diagnosed.
+- **Corrected upload (owner, before 15:00 EST):** the three files were moved into `apphub-staging-apps/cocolla/assets/`. Passcode and settings unchanged.
+- **Real-host re-verification (2026-11-22 ~15:00–15:15 EST): VERIFIED, ALL PASS.**
+  - App Hub `apphub-upload-verify.mjs`: directory lists `passcode, version 0.0.0-a63154e`; unlock PASS; all 6 files present and byte-identical to `dist/apphub/cocolla/`.
+  - `apphub-browser-check.mjs` against `https://apphub-staging.lopesmoreno.com/apps/projects/cocolla/`: 21/21 PASS. Covered:
+    - unlock 200 with a `Secure; HttpOnly` cookie;
+    - editor startup, title, JS/CSS from `/apps/projects/cocolla/assets/` and the stylesheet applied;
+    - drawing (0 → 4 stitches);
+    - Export JSON (valid 4-stitch document), then Import JSON restoring it after a new blank pattern;
+    - Import image converted through the Web Worker (4,240-stitch pattern);
+    - the worker script `image-conversion.worker-HE8avWgo.js` loaded from `assets/`;
+    - browser refresh and an SPA deep link;
+    - no failed requests, no console errors, no request outside `/apps/projects/cocolla/`.
+  - The passcode was read from the local git-ignored file and passed only through the environment; it was not reset, printed or logged.
+- **Browser check now asserts the worker file.** It previously inferred the worker from a successful conversion (there is no main-thread fallback). It now also requires a dedicated-worker target whose script is a `*worker*.js` under the app's `assets/`, detected through DevTools auto-attach. The page's Network domain does not report worker script loads, and a first attempt using it failed locally for that reason. Verified locally behind the real PHP gate (21/21) and on Hostinger (21/21).
+- `npm run check` after that change: 79/79 tests plus 4/4 export tests, exit 0.
+- **Not verified:** other browsers (only headless Chrome), real tester devices, and behaviour under load.
+
 ### Verification
 
 `npm run check` passed for COC.4.3 Stage 1 on 2026-10-18 using Node v24.14.0 on Windows x64:
