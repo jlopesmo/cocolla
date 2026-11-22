@@ -81,7 +81,11 @@ Verified 2026-11-22 on Node v24.14.0, Windows x64:
   - Import image converts through the Web Worker (a 24×16 PNG gave a 4,240-stitch pattern);
   - reload and an SPA deep link work;
   - no failed requests, console errors, or requests outside the base path (no server or database).
-- **Not verified yet:** the package on Hostinger staging (LiteSpeed, CDN). Upload `dist/apphub/cocolla/` to the App Hub's protected `apphub-staging-apps/cocolla/`.
+- **Hostinger staging (2026-11-22 13:40–13:43 EST):** the owner uploaded the package to the App Hub's protected `apphub-staging-apps/cocolla/` and set it to Passcode.
+  - The App Hub lists it as `cocolla:passcode:0.0.0-a63154e`.
+  - Locked paths redirect to the unlock page, and the icon is public.
+  - The App Hub's full staging e2e passed 113/113 with Cocolla present (discovered in the protected folder, valid).
+- **Not verified yet:** the editor functions on staging (LiteSpeed/CDN). `APPHUB_PASSCODE=… node scripts/apphub-browser-check.mjs https://apphub-staging.lopesmoreno.com/apps/projects/cocolla/` is pending the owner's tester passcode.
 
 ### Verification
 
