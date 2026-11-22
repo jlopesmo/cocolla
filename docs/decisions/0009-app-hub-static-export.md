@@ -36,6 +36,7 @@ While verifying this, a pre-existing production defect was found. `ImageImportDi
   - editor load, drawing, JSON export/import, image import through the worker, reload, SPA deep link;
   - no failed requests, console errors or requests outside the base.
   - It is a manual QA script, because it needs a browser and a server.
+  - For an App Hub Passcode app it unlocks first with `APPHUB_PASSCODE` (read from the environment only, never printed).
 - **Behind the App Hub,** the editor shares its origin's `localStorage` with the host site. Only renderer preferences are stored, under Cocolla's versioned key.
 - **The App Hub does not make the editor multi-user or persistent.** Testers keep their work with Export JSON; nothing is stored on the server.
 - **Passcode protects access to the unfinished app, not confidential data.** The editor contains no user data.

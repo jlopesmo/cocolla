@@ -3,6 +3,8 @@
 // behind the real PHP gate). Node built-ins only (DevTools protocol over WebSocket).
 //
 //   node scripts/apphub-browser-check.mjs <app-url> [--cookie name=value] [--browser <chrome.exe>]
+//   APPHUB_PASSCODE=<passcode> node scripts/apphub-browser-check.mjs https://<hub>/apps/projects/cocolla/
+//     (App Hub Passcode app: unlocks first; the passcode is read from the environment only)
 //
 // Verifies: the editor loads with no failed request, console error or request outside
 // the app's base path; drawing places stitches; Export JSON produces a valid document;
@@ -91,8 +93,23 @@ async function main() {
     if (m.method === "Page.javascriptDialogOpening") send("Page.handleJavaScriptDialog", { accept: true }).catch(() => {});
   });
   await send("Network.enable"); await send("Runtime.enable"); await send("Page.enable"); await send("Log.enable"); await send("DOM.enable");
-  const cookie = opt("--cookie");
-  if (cookie) { const [name, ...v] = cookie.split("="); await send("Network.setCookie", { name, value: v.join("="), url: app.href, path: app.pathname }); }
+  let cookie = opt("--cookie");
+  // App Hub Passcode app: unlock with APPHUB_PASSCODE (env only; never printed) to get the
+  // app-scoped cookie, exactly as the unlock page does.
+  if (!cookie && process.env.APPHUB_PASSCODE) {
+    const id = app.pathname.match(/^\/apps\/projects\/([a-z0-9-]+)\/$/)?.[1];
+    if (!id) throw new Error("APPHUB_PASSCODE needs an /apps/projects/<id>/ URL");
+    const r = await fetch(`${app.origin}/api/apphub/unlock.php`, {
+      method: "POST", headers: { "content-type": "application/json", origin: app.origin },
+      body: JSON.stringify({ id, passcode: process.env.APPHUB_PASSCODE }),
+    });
+    const sc = r.headers.getSetCookie().find((c) => c.startsWith(`apphub_app_${id.replace(/-/g, "_")}=`));
+    check(r.status === 200 && Boolean(sc), `App Hub unlock (${r.status}${r.status === 401 ? ": wrong passcode" : r.status === 429 ? ": rate limited, wait 15 min" : ""})`);
+    if (!sc) throw new Error("App Hub unlock failed");
+    if (app.protocol === "https:") check(/;\s*Secure/i.test(sc) && /HttpOnly/i.test(sc), "unlock cookie Secure + HttpOnly");
+    cookie = sc.split(";")[0];
+  }
+  if (cookie) { const [name, ...v] = cookie.split("="); await send("Network.setCookie", { name, value: v.join("="), url: app.href, path: app.pathname, ...(app.protocol === "https:" ? { secure: true } : {}), httpOnly: true }); }
 
   // Capture exported blobs without triggering real downloads.
   await send("Page.addScriptToEvaluateOnNewDocument", { source: `
