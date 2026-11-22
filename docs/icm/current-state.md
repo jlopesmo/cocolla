@@ -10,6 +10,7 @@
 - COC.2 implementation branch: `feat/coc2-visual-pattern-editor`.
 - COC.4.1 was squash-merged through GitHub PR #3 at commit `d0a4c594ad66444f046f1be341d24eb51f595a14`.
 - COC.4.2 was completed when GitHub PR #5 was squash-merged to `main` at commit `cea02eb66ef0cd8624cb3d54be4a656ebcadfb7e`.
+- The App Hub static export pilot (`feat/apphub-export` @ `d6456f1`) was squash-merged through GitHub PR #9 to `main` at commit `9433c2e3f79cb70e8b2a134eed1b9bde1dae3e6a` on 2026-11-22, with owner approval. It is not published on the production App Hub.
 - COC.4.3 Stage 1 is implemented on `feat/coc4-thread-catalog-foundation` and is not merged.
 - Architecture approved on 2026-10-18.
 
@@ -51,7 +52,7 @@ COC.1, COC.2/COC.2.1, COC.4.1, and COC.4.2 are merged. COC.4.3 Stage 1 is implem
 - Searchable synthetic thread browser with catalog identity, codes, names, swatches, nearest-match ordering and ΔE00 display, assign/remove/replace actions, and explicit unresolved-product warnings. The 12 entries are invented Cocolla development fixtures and are not labeled as DMC or manufacturer products.
 - Pattern Document v1 JSON persistence for provider-qualified `threadProductId` values, including exact round trips when the referenced provider/product is unavailable. No schema migration was needed.
 
-### App Hub static export pilot (branch `feat/apphub-export`, not merged; [ADR 0009](../decisions/0009-app-hub-static-export.md))
+### App Hub static export pilot (merged to `main` via PR #9, `9433c2e`, 2026-11-22; not on the production App Hub; [ADR 0009](../decisions/0009-app-hub-static-export.md))
 
 Verified 2026-11-22 on Node v24.14.0, Windows x64:
 
@@ -107,6 +108,7 @@ Verified 2026-11-22 on Node v24.14.0, Windows x64:
 - **Browser check now asserts the worker file.** It previously inferred the worker from a successful conversion (there is no main-thread fallback). It now also requires a dedicated-worker target whose script is a `*worker*.js` under the app's `assets/`, detected through DevTools auto-attach. The page's Network domain does not report worker script loads, and a first attempt using it failed locally for that reason. Verified locally behind the real PHP gate (21/21) and on Hostinger (21/21).
 - `npm run check` after that change: 79/79 tests plus 4/4 export tests, exit 0.
 - **Not verified:** other browsers (only headless Chrome), real tester devices, and behaviour under load.
+- **Integrated `main` `9433c2e` (2026-11-22, clean `git archive` export):** `npm run check` 79 + 4 tests pass; build OK; `npm run package:apphub` OK. The package is byte-identical to the one accepted on staging, apart from the `app.json` version stamp.
 
 ### Verification
 
