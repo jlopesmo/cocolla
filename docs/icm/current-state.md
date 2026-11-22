@@ -1,6 +1,6 @@
 # Cocolla Current State
 
-**As of:** 2026-10-18
+**As of:** 2026-11-22 (COC.4.3 and App Hub export merge status; other sections as dated)
 
 ## Detected facts
 
@@ -11,12 +11,12 @@
 - COC.4.1 was squash-merged through GitHub PR #3 at commit `d0a4c594ad66444f046f1be341d24eb51f595a14`.
 - COC.4.2 was completed when GitHub PR #5 was squash-merged to `main` at commit `cea02eb66ef0cd8624cb3d54be4a656ebcadfb7e`.
 - The App Hub static export pilot (`feat/apphub-export` @ `d6456f1`) was squash-merged through GitHub PR #9 to `main` at commit `9433c2e3f79cb70e8b2a134eed1b9bde1dae3e6a` on 2026-11-22, with owner approval. It is not published on the production App Hub.
-- COC.4.3 Stage 1 is implemented on `feat/coc4-thread-catalog-foundation` and is not merged.
+- COC.4.3 Stage 1 was squash-merged through GitHub PR #6 (`feat/coc4-thread-catalog-foundation` @ `60d15ff`) to `main` at commit `1a61bf2cf0f3aefbbffcc7697d8f6d7f6b760527` (merged 2026-10-19 00:27 UTC; the commit tree is identical to `60d15ff`).
 - Architecture approved on 2026-10-18.
 
 ## Status
 
-COC.1, COC.2/COC.2.1, COC.4.1, and COC.4.2 are merged. COC.4.3 Stage 1 is implemented and validated on its isolated feature branch: catalog-neutral search/lookup/matching, portable thread assignments, explicit logical-color replacement, unresolved-entry behavior, and editor integration use a small synthetic catalog only. No verified DMC data, new dependency, backend, or persistence work is included.
+COC.1, COC.2/COC.2.1, COC.4.1, COC.4.2, COC.4.3 Stage 1 (PR #6) and the App Hub static export pilot (PR #9) are merged. COC.4.3 Stage 1 provides catalog-neutral search/lookup/matching, portable thread assignments, explicit logical-color replacement, unresolved-entry behavior, and editor integration use a small synthetic catalog only. No verified DMC data, new dependency, backend, or persistence work is included.
 
 ### Implemented
 
